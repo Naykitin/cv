@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowUpRight,
   BriefcaseBusiness,
@@ -9,6 +10,7 @@ import {
   MapPin,
   Phone,
   Rocket,
+  Send,
   Sparkles,
 } from 'lucide-react';
 import './App.css';
@@ -127,12 +129,76 @@ const services = [
   },
 ];
 
+function useScrollReveal() {
+  useEffect(() => {
+    const items = document.querySelectorAll('.reveal');
+
+    if (!('IntersectionObserver' in window)) {
+      items.forEach((item) => item.classList.add('is-visible'));
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: '0px 0px -12% 0px', threshold: 0.12 }
+    );
+
+    items.forEach((item) => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, []);
+}
+
 function App() {
+  const shellRef = useRef(null);
+  const [formStatus, setFormStatus] = useState('');
+
+  useScrollReveal();
+
+  const handlePointerMove = (event) => {
+    const shell = shellRef.current;
+
+    if (!shell) {
+      return;
+    }
+
+    const { innerWidth, innerHeight } = window;
+    const x = event.clientX / innerWidth;
+    const y = event.clientY / innerHeight;
+
+    shell.style.setProperty('--pointer-x', `${event.clientX}px`);
+    shell.style.setProperty('--pointer-y', `${event.clientY}px`);
+    shell.style.setProperty('--tilt-x', `${(y - 0.5) * -8}deg`);
+    shell.style.setProperty('--tilt-y', `${(x - 0.5) * 10}deg`);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get('name');
+    const email = formData.get('email');
+    const message = formData.get('message');
+    const subject = encodeURIComponent(`CV website contact from ${name}`);
+    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\n${message}`);
+
+    window.location.href = `mailto:n.vladyslav@icloud.com?subject=${subject}&body=${body}`;
+    setFormStatus('Your email client is opening with the message ready to send.');
+    event.currentTarget.reset();
+  };
+
   return (
-    <main className="portfolio-shell">
+    <main className="portfolio-shell" ref={shellRef} onPointerMove={handlePointerMove}>
       <section className="hero-section" aria-labelledby="hero-title">
         <div className="hero-grid">
-          <div className="hero-copy">
+          <div className="hero-copy reveal is-visible">
             <p className="eyebrow">
               <Sparkles size={16} aria-hidden="true" />
               Available for modern web builds
@@ -149,7 +215,7 @@ function App() {
                 <Download size={18} aria-hidden="true" />
                 Download CV
               </a>
-              <a className="button button-secondary" href="mailto:n.vladyslav@icloud.com">
+              <a className="button button-secondary" href="#contact">
                 <Mail size={18} aria-hidden="true" />
                 Contact me
               </a>
@@ -167,7 +233,7 @@ function App() {
             </div>
           </div>
 
-          <aside className="profile-panel" aria-label="Profile overview">
+          <aside className="profile-panel reveal is-visible" aria-label="Profile overview">
             <div className="avatar-card">
               <div className="avatar-mark" aria-hidden="true">
                 VN
@@ -198,7 +264,7 @@ function App() {
         </div>
       </section>
 
-      <section className="section-grid section-intro" aria-labelledby="summary-title">
+      <section className="section-grid section-intro reveal" aria-labelledby="summary-title">
         <div>
           <p className="section-label">Profile</p>
           <h2 id="summary-title">Clean code for business problems.</h2>
@@ -212,7 +278,7 @@ function App() {
         </div>
       </section>
 
-      <section className="cards-section" aria-labelledby="expertise-title">
+      <section className="cards-section reveal" aria-labelledby="expertise-title">
         <div className="section-heading">
           <p className="section-label">Expertise</p>
           <h2 id="expertise-title">What I bring to a product team</h2>
@@ -233,7 +299,7 @@ function App() {
         </div>
       </section>
 
-      <section className="section-grid" aria-labelledby="experience-title">
+      <section className="section-grid reveal" aria-labelledby="experience-title">
         <div className="sticky-heading">
           <p className="section-label">Experience</p>
           <h2 id="experience-title">Recent roles and impact</h2>
@@ -257,7 +323,7 @@ function App() {
         </div>
       </section>
 
-      <section className="project-section" aria-labelledby="project-title">
+      <section className="project-section reveal" aria-labelledby="project-title">
         <div className="project-copy">
           <p className="section-label">Personal project</p>
           <h2 id="project-title">Headless WordPress & Next.js Platform</h2>
@@ -277,13 +343,54 @@ function App() {
         </div>
       </section>
 
-      <section className="education-section" aria-labelledby="education-title">
+      <section className="education-section reveal" aria-labelledby="education-title">
         <div>
           <p className="section-label">Education</p>
           <h2 id="education-title">Kharkiv National University of Radioelectronics</h2>
           <p>Master of Science, Mechatronics, Robotics, and Automation Engineering</p>
         </div>
         <span>Sep 2018 - Dec 2022</span>
+      </section>
+
+      <section className="contact-section reveal" id="contact" aria-labelledby="contact-title">
+        <div className="contact-copy">
+          <p className="section-label">Contact</p>
+          <h2 id="contact-title">Let’s build something fast, clear, and useful.</h2>
+          <p>
+            Send a short brief, a role description, or a project idea. The form prepares an email so
+            you can review everything before it leaves your device.
+          </p>
+          <div className="contact-options">
+            <a href="mailto:n.vladyslav@icloud.com">
+              <Mail size={18} aria-hidden="true" />
+              n.vladyslav@icloud.com
+            </a>
+            <a href="tel:+34672806935">
+              <Phone size={18} aria-hidden="true" />
+              +34 672 806 935
+            </a>
+          </div>
+        </div>
+
+        <form className="contact-form" onSubmit={handleSubmit}>
+          <label>
+            Name
+            <input name="name" type="text" autoComplete="name" placeholder="Your name" required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" autoComplete="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Message
+            <textarea name="message" rows="6" placeholder="Tell me about the project or opportunity" required />
+          </label>
+          <button className="button button-primary" type="submit">
+            <Send size={18} aria-hidden="true" />
+            Send message
+          </button>
+          <p className="form-status" aria-live="polite">{formStatus}</p>
+        </form>
       </section>
 
       <footer className="site-footer">
