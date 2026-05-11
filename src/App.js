@@ -16,6 +16,7 @@ import {
 import './App.css';
 
 const cvFile = `${process.env.PUBLIC_URL}/Nikitin Vladyslav CV.pdf`;
+const formEndpoint = process.env.REACT_APP_FORMSPREE_ENDPOINT;
 
 const contactLinks = [
   {
@@ -158,7 +159,7 @@ function useScrollReveal() {
 
 function App() {
   const shellRef = useRef(null);
-  const [formStatus, setFormStatus] = useState('');
+  const [formState, setFormState] = useState({ status: 'idle', message: '' });
 
   useScrollReveal();
 
@@ -179,19 +180,55 @@ function App() {
     shell.style.setProperty('--tilt-y', `${(x - 0.5) * 10}deg`);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (!formEndpoint) {
+      setFormState({
+        status: 'error',
+        message: 'Contact form is not configured yet. Add REACT_APP_FORMSPREE_ENDPOINT to enable sending.',
+      });
+      return;
+    }
+
+    const form = event.currentTarget;
     const formData = new FormData(event.currentTarget);
     const name = formData.get('name');
     const email = formData.get('email');
     const message = formData.get('message');
-    const subject = encodeURIComponent(`CV website contact from ${name}`);
-    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\n${message}`);
 
-    window.location.href = `mailto:n.vladyslav@icloud.com?subject=${subject}&body=${body}`;
-    setFormStatus('Your email client is opening with the message ready to send.');
-    event.currentTarget.reset();
+    setFormState({ status: 'loading', message: 'Sending your message...' });
+
+    try {
+      const response = await fetch(formEndpoint, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+          _subject: `CV website contact from ${name}`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Form provider rejected the request.');
+      }
+
+      form.reset();
+      setFormState({
+        status: 'success',
+        message: 'Message sent. I will get back to you soon.',
+      });
+    } catch (error) {
+      setFormState({
+        status: 'error',
+        message: 'Something went wrong while sending. You can still email me directly.',
+      });
+    }
   };
 
   return (
@@ -357,8 +394,8 @@ function App() {
           <p className="section-label">Contact</p>
           <h2 id="contact-title">Let’s build something fast, clear, and useful.</h2>
           <p>
-            Send a short brief, a role description, or a project idea. The form prepares an email so
-            you can review everything before it leaves your device.
+            Send a short brief, a role description, or a project idea. The form sends your message
+            through a secure third-party form endpoint.
           </p>
           <div className="contact-options">
             <a href="mailto:n.vladyslav@icloud.com">
@@ -385,11 +422,11 @@ function App() {
             Message
             <textarea name="message" rows="6" placeholder="Tell me about the project or opportunity" required />
           </label>
-          <button className="button button-primary" type="submit">
+          <button className="button button-primary" type="submit" disabled={formState.status === 'loading'}>
             <Send size={18} aria-hidden="true" />
-            Send message
+            {formState.status === 'loading' ? 'Sending...' : 'Send message'}
           </button>
-          <p className="form-status" aria-live="polite">{formStatus}</p>
+          <p className={`form-status ${formState.status}`} aria-live="polite">{formState.message}</p>
         </form>
       </section>
 
