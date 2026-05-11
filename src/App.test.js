@@ -3,6 +3,6 @@ import App from './App';
 
 test('renders CV hero heading', () => {
   render(<App />);
-  const heading = screen.getByRole('heading', { name: /vladyslav nikitin/i });
+  const heading = screen.getByRole('heading', { name: /fast commerce and CMS platforms/i });
   expect(heading).toBeInTheDocument();
 });

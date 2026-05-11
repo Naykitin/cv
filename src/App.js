@@ -4,7 +4,6 @@ import {
   BriefcaseBusiness,
   Code2,
   Download,
-  ExternalLink,
   GitBranch,
   Mail,
   MapPin,
@@ -18,29 +17,13 @@ import './App.css';
 const cvFile = `${process.env.PUBLIC_URL}/Nikitin Vladyslav CV.pdf`;
 const formEndpoint = process.env.REACT_APP_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xkoykqdk';
 
-const contactLinks = [
-  {
-    label: 'LinkedIn',
-    href: 'https://www.linkedin.com/in/nikitin-vladyslav/',
-    icon: ExternalLink,
-  },
-  {
-    label: 'GitHub',
-    href: 'https://github.com/Naykitin',
-    icon: GitBranch,
-  },
-  {
-    label: 'Email',
-    href: 'mailto:n.vladyslav@icloud.com',
-    icon: Mail,
-  },
-];
-
 const stats = [
   { value: '5+', label: 'Years building web products' },
   { value: '2026', label: 'Latest full-stack role' },
   { value: '15+', label: 'CMS and commerce stacks shipped' },
 ];
+
+const heroSignals = ['React / Next.js', 'Headless WordPress', 'E-commerce systems'];
 
 const expertise = [
   'React',
@@ -236,25 +219,37 @@ function App() {
       <section className="hero-section" aria-labelledby="hero-title">
         <div className="hero-grid">
           <div className="hero-copy reveal is-visible">
-            <p className="eyebrow">
-              <Sparkles size={16} aria-hidden="true" />
-              Available for modern web builds
-            </p>
-            <h1 id="hero-title">Vladyslav Nikitin</h1>
-            <p className="hero-role">Full Stack Developer | WordPress Specialist</p>
+            <div className="hero-status">
+              <span>
+                <Sparkles size={16} aria-hidden="true" />
+                Open to remote product teams
+              </span>
+              <span>
+                <MapPin size={16} aria-hidden="true" />
+                Spain
+              </span>
+            </div>
+            <p className="hero-name">Vladyslav Nikitin</p>
+            <h1 id="hero-title">Full-stack developer for fast commerce and CMS platforms.</h1>
             <p className="hero-text">
-              I build high-performance websites and web applications, bridging polished frontend experiences
-              with secure backend logic, e-commerce systems, and advanced integrations.
+              I turn complex WordPress, Shopify, and headless ideas into polished React and Next.js
+              products with secure integrations, clean data flows, and frontend performance that feels immediate.
             </p>
 
+            <div className="hero-signal-row" aria-label="Main expertise">
+              {heroSignals.map((signal) => (
+                <span key={signal}>{signal}</span>
+              ))}
+            </div>
+
             <div className="hero-actions" aria-label="Primary actions">
-              <a className="button button-primary" href={cvFile} download>
+              <a className="button button-primary" href="#contact">
+                <Mail size={18} aria-hidden="true" />
+                Start a conversation
+              </a>
+              <a className="button button-secondary" href={cvFile} download>
                 <Download size={18} aria-hidden="true" />
                 Download CV
-              </a>
-              <a className="button button-secondary" href="#contact">
-                <Mail size={18} aria-hidden="true" />
-                Contact me
               </a>
             </div>
 
@@ -263,39 +258,38 @@ function App() {
                 <Phone size={16} aria-hidden="true" />
                 +34 672 806 935
               </a>
-              <span>
-                <MapPin size={16} aria-hidden="true" />
-                Spain
-              </span>
+              <a href="https://github.com/Naykitin" target="_blank" rel="noreferrer">
+                <GitBranch size={16} aria-hidden="true" />
+                GitHub
+              </a>
             </div>
           </div>
 
-          <aside className="profile-panel reveal is-visible" aria-label="Profile overview">
-            <div className="avatar-card">
-              <div className="avatar-mark" aria-hidden="true">
-                VN
-              </div>
-              <div>
-                <p className="panel-kicker">Core focus</p>
-                <h2>Fast, scalable commerce and CMS platforms</h2>
-              </div>
+          <aside className="hero-showcase reveal is-visible" aria-label="Developer profile highlights">
+            <div className="showcase-topline">
+              <span>current_stack.tsx</span>
+              <span>production-ready</span>
             </div>
-            <div className="stats-grid">
+            <div className="code-window" aria-hidden="true">
+              <p><span>const</span> developer = &#123;</p>
+              <p>&nbsp;&nbsp;focus: <strong>'full-stack commerce'</strong>,</p>
+              <p>&nbsp;&nbsp;frontend: [<strong>'React'</strong>, <strong>'Next.js'</strong>],</p>
+              <p>&nbsp;&nbsp;cms: [<strong>'WordPress'</strong>, <strong>'WooCommerce'</strong>],</p>
+              <p>&nbsp;&nbsp;delivery: <strong>'fast, secure, scalable'</strong></p>
+              <p>&#125;;</p>
+            </div>
+            <div className="hero-metric-grid">
               {stats.map((item) => (
-                <div className="stat-card" key={item.label}>
+                <div className="hero-metric" key={item.label}>
                   <strong>{item.value}</strong>
                   <span>{item.label}</span>
                 </div>
               ))}
             </div>
-            <div className="link-row">
-              {contactLinks.map(({ label, href, icon: Icon }) => (
-                <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
-                  <Icon size={18} aria-hidden="true" />
-                  <span>{label}</span>
-                  <ArrowUpRight size={14} aria-hidden="true" />
-                </a>
-              ))}
+            <div className="showcase-footer">
+              <span>API integrations</span>
+              <span>CRM tracking</span>
+              <span>Payment flows</span>
             </div>
           </aside>
         </div>
