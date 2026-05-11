@@ -25,6 +25,13 @@ const stats = [
 
 const heroSignals = ['React / Next.js', 'Headless WordPress', 'E-commerce systems'];
 
+const heroCapabilities = [
+  'Payment gateways',
+  'Third-party APIs',
+  'CRM tracking',
+  'GraphQL data layers',
+];
+
 const expertise = [
   'React',
   'Next.js',
@@ -230,7 +237,7 @@ function App() {
               </span>
             </div>
             <p className="hero-name">Vladyslav Nikitin</p>
-            <h1 id="hero-title">Full-stack developer for fast commerce and CMS platforms.</h1>
+            <h1 id="hero-title">Full-stack developer building commerce, CMS, and React platforms.</h1>
             <p className="hero-text">
               I turn complex WordPress, Shopify, and headless ideas into polished React and Next.js
               products with secure integrations, clean data flows, and frontend performance that feels immediate.
@@ -270,13 +277,14 @@ function App() {
               <span>current_stack.tsx</span>
               <span>production-ready</span>
             </div>
-            <div className="code-window" aria-hidden="true">
-              <p><span>const</span> developer = &#123;</p>
-              <p>&nbsp;&nbsp;focus: <strong>'full-stack commerce'</strong>,</p>
-              <p>&nbsp;&nbsp;frontend: [<strong>'React'</strong>, <strong>'Next.js'</strong>],</p>
-              <p>&nbsp;&nbsp;cms: [<strong>'WordPress'</strong>, <strong>'WooCommerce'</strong>],</p>
-              <p>&nbsp;&nbsp;delivery: <strong>'fast, secure, scalable'</strong></p>
-              <p>&#125;;</p>
+            <div className="showcase-focus">
+              <p>Core delivery</p>
+              <h2>Pixel-perfect frontend, practical backend, measurable product flow.</h2>
+            </div>
+            <div className="capability-list" aria-label="Technical capabilities">
+              {heroCapabilities.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
             </div>
             <div className="hero-metric-grid">
               {stats.map((item) => (
