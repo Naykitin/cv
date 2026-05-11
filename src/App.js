@@ -16,7 +16,7 @@ import {
 import './App.css';
 
 const cvFile = `${process.env.PUBLIC_URL}/Nikitin Vladyslav CV.pdf`;
-const formEndpoint = process.env.REACT_APP_FORMSPREE_ENDPOINT;
+const formEndpoint = process.env.REACT_APP_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xkoykqdk';
 
 const contactLinks = [
   {
@@ -186,7 +186,7 @@ function App() {
     if (!formEndpoint) {
       setFormState({
         status: 'error',
-        message: 'Contact form is not configured yet. Add REACT_APP_FORMSPREE_ENDPOINT to enable sending.',
+        message: 'Contact form is not configured yet. Add a Formspree endpoint to enable sending.',
       });
       return;
     }
