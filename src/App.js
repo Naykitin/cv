@@ -14,7 +14,9 @@ import {
 } from 'lucide-react';
 import './App.css';
 
-const cvFile = `${process.env.PUBLIC_URL}/Nikitin Vladyslav CV.pdf`;
+const defaultCvFile = `${process.env.PUBLIC_URL}/Nikitin_Vladyslav_CV.pdf`;
+const uaCvFile = `${process.env.PUBLIC_URL}/Nikitin_Vladyslav_CV_UA.pdf`;
+const locationApiUrl = 'http://ip-api.com/json/?fields=status,countryCode';
 const formEndpoint = process.env.REACT_APP_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xkoykqdk';
 
 const stats = [
@@ -147,8 +149,47 @@ function useScrollReveal() {
   }, []);
 }
 
+function useLocalizedCvFile() {
+  const [cvFile, setCvFile] = useState(defaultCvFile);
+
+  useEffect(() => {
+    if (typeof fetch !== 'function') {
+      return undefined;
+    }
+
+    const controller = new AbortController();
+
+    const detectCountry = async () => {
+      try {
+        const response = await fetch(locationApiUrl, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error('Location lookup failed.');
+        }
+
+        const data = await response.json();
+
+        setCvFile(data.status === 'success' && data.countryCode === 'UA' ? uaCvFile : defaultCvFile);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          setCvFile(defaultCvFile);
+        }
+      }
+    };
+
+    detectCountry();
+
+    return () => controller.abort();
+  }, []);
+
+  return cvFile;
+}
+
 function App() {
   const shellRef = useRef(null);
+  const cvFile = useLocalizedCvFile();
   const [formState, setFormState] = useState({ status: 'idle', message: '' });
 
   useScrollReveal();
@@ -404,6 +445,10 @@ function App() {
               <Mail size={18} aria-hidden="true" />
               n.vladyslav@icloud.com
             </a>
+            <a href="mailto:vladnik1999@gmail.com">
+              <Mail size={18} aria-hidden="true" />
+              vladnik1999@gmail.com
+            </a>
             <a href="tel:+34672806935">
               <Phone size={18} aria-hidden="true" />
               +34 672 806 935
@@ -437,6 +482,7 @@ function App() {
         <div className="footer-actions">
           <a href={cvFile} target="_blank" rel="noreferrer">Open PDF</a>
           <a href="mailto:n.vladyslav@icloud.com">n.vladyslav@icloud.com</a>
+          <a href="mailto:vladnik1999@gmail.com">vladnik1999@gmail.com</a>
         </div>
       </footer>
     </main>
