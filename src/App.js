@@ -16,7 +16,11 @@ import './App.css';
 
 const defaultCvFile = `${process.env.PUBLIC_URL}/Nikitin_Vladyslav_CV.pdf`;
 const uaCvFile = `${process.env.PUBLIC_URL}/Nikitin_Vladyslav_CV_UA.pdf`;
-const locationApiUrl = 'http://ip-api.com/json/?fields=status,countryCode';
+const defaultPhoneNumber = '+34 672 806 935';
+const uaPhoneNumber = '+380 99 764 4998';
+const defaultPhoneHref = 'https://wa.me/34672806935';
+const uaPhoneHref = 'https://t.me/naykitin';
+const locationApiUrl = 'https://free.freeipapi.com/api/json/';
 const formEndpoint = process.env.REACT_APP_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xkoykqdk';
 
 const stats = [
@@ -149,8 +153,12 @@ function useScrollReveal() {
   }, []);
 }
 
-function useLocalizedCvFile() {
-  const [cvFile, setCvFile] = useState(defaultCvFile);
+function useLocalizedContact() {
+  const [contact, setContact] = useState({
+    cvFile: defaultCvFile,
+    phoneNumber: defaultPhoneNumber,
+    phoneHref: defaultPhoneHref,
+  });
 
   useEffect(() => {
     if (typeof fetch !== 'function') {
@@ -170,11 +178,20 @@ function useLocalizedCvFile() {
         }
 
         const data = await response.json();
+        const isUkraine = data.countryCode === 'UA';
 
-        setCvFile(data.status === 'success' && data.countryCode === 'UA' ? uaCvFile : defaultCvFile);
+        setContact({
+          cvFile: isUkraine ? uaCvFile : defaultCvFile,
+          phoneNumber: isUkraine ? uaPhoneNumber : defaultPhoneNumber,
+          phoneHref: isUkraine ? uaPhoneHref : defaultPhoneHref,
+        });
       } catch (error) {
         if (error.name !== 'AbortError') {
-          setCvFile(defaultCvFile);
+          setContact({
+            cvFile: defaultCvFile,
+            phoneNumber: defaultPhoneNumber,
+            phoneHref: defaultPhoneHref,
+          });
         }
       }
     };
@@ -184,12 +201,12 @@ function useLocalizedCvFile() {
     return () => controller.abort();
   }, []);
 
-  return cvFile;
+  return contact;
 }
 
 function App() {
   const shellRef = useRef(null);
-  const cvFile = useLocalizedCvFile();
+  const { cvFile, phoneHref, phoneNumber } = useLocalizedContact();
   const [formState, setFormState] = useState({ status: 'idle', message: '' });
 
   useScrollReveal();
@@ -302,9 +319,9 @@ function App() {
             </div>
 
             <div className="contact-strip" aria-label="Contact details">
-              <a href="tel:+34672806935">
+              <a href={phoneHref} target="_blank" rel="noreferrer">
                 <Phone size={16} aria-hidden="true" />
-                +34 672 806 935
+                {phoneNumber}
               </a>
               <a href="https://github.com/Naykitin" target="_blank" rel="noreferrer">
                 <GitBranch size={16} aria-hidden="true" />
@@ -449,9 +466,9 @@ function App() {
               <Mail size={18} aria-hidden="true" />
               vladnik1999@gmail.com
             </a>
-            <a href="tel:+34672806935">
+            <a href={phoneHref} target="_blank" rel="noreferrer">
               <Phone size={18} aria-hidden="true" />
-              +34 672 806 935
+              {phoneNumber}
             </a>
           </div>
         </div>
