@@ -14,14 +14,14 @@ import {
 } from 'lucide-react';
 import './App.css';
 
-const defaultCvFile = `${process.env.PUBLIC_URL}/Nikitin_Vladyslav_CV.pdf`;
-const uaCvFile = `${process.env.PUBLIC_URL}/Nikitin_Vladyslav_CV_UA.pdf`;
+const defaultCvFile = '/Nikitin_Vladyslav_CV.pdf';
+const uaCvFile = '/Nikitin_Vladyslav_CV_UA.pdf';
 const defaultPhoneNumber = '+34 672 806 935';
 const uaPhoneNumber = '+380 99 764 4998';
 const defaultPhoneHref = 'https://wa.me/34672806935';
 const uaPhoneHref = 'https://t.me/naykitin';
 const locationApiUrl = 'https://free.freeipapi.com/api/json/';
-const formEndpoint = process.env.REACT_APP_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xkoykqdk';
+const formEndpoint = import.meta.env.VITE_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xkoykqdk';
 
 const stats = [
   { value: '5+', label: 'Years building web products' },

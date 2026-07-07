@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import { afterEach, expect, test, vi } from 'vitest';
 import App from './App';
 
 const originalFetch = global.fetch;
@@ -16,7 +17,7 @@ test('renders CV hero heading', () => {
 });
 
 test('uses Ukrainian CV download for visitors from Ukraine', async () => {
-  global.fetch = jest.fn().mockResolvedValue({
+  global.fetch = vi.fn().mockResolvedValue({
     ok: true,
     json: async () => ({ countryCode: 'UA' }),
   });
@@ -37,7 +38,7 @@ test('uses Ukrainian CV download for visitors from Ukraine', async () => {
 });
 
 test('uses WhatsApp link for the default Spanish phone number', async () => {
-  global.fetch = jest.fn().mockResolvedValue({
+  global.fetch = vi.fn().mockResolvedValue({
     ok: true,
     json: async () => ({ countryCode: 'ES' }),
   });
