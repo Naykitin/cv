@@ -12,6 +12,9 @@ import {
   Send,
   Sparkles,
 } from 'lucide-react';
+import CustomCursor from './CustomCursor';
+import ParticleField from './ParticleField';
+import useScrollEffects from './useScrollEffects';
 import './App.css';
 
 const defaultCvFile = '/Nikitin_Vladyslav_CV.pdf';
@@ -126,33 +129,6 @@ const services = [
   },
 ];
 
-function useScrollReveal() {
-  useEffect(() => {
-    const items = document.querySelectorAll('.reveal');
-
-    if (!('IntersectionObserver' in window)) {
-      items.forEach((item) => item.classList.add('is-visible'));
-      return undefined;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { rootMargin: '0px 0px -12% 0px', threshold: 0.12 }
-    );
-
-    items.forEach((item) => observer.observe(item));
-
-    return () => observer.disconnect();
-  }, []);
-}
-
 function useLocalizedContact() {
   const [contact, setContact] = useState({
     cvFile: defaultCvFile,
@@ -209,7 +185,7 @@ function App() {
   const { cvFile, phoneHref, phoneNumber } = useLocalizedContact();
   const [formState, setFormState] = useState({ status: 'idle', message: '' });
 
-  useScrollReveal();
+  useScrollEffects();
 
   const handlePointerMove = (event) => {
     const shell = shellRef.current;
@@ -281,9 +257,10 @@ function App() {
 
   return (
     <main className="portfolio-shell" ref={shellRef} onPointerMove={handlePointerMove}>
+      <ParticleField />
       <section className="hero-section" aria-labelledby="hero-title">
         <div className="hero-grid">
-          <div className="hero-copy reveal is-visible">
+          <div className="hero-copy reveal">
             <div className="hero-status">
               <span>
                 <Sparkles size={16} aria-hidden="true" />
@@ -330,7 +307,7 @@ function App() {
             </div>
           </div>
 
-          <aside className="hero-showcase reveal is-visible" aria-label="Developer profile highlights">
+          <aside className="hero-showcase reveal" aria-label="Developer profile highlights">
             <div className="showcase-topline">
               <span>current_stack.tsx</span>
               <span>production-ready</span>
@@ -396,14 +373,14 @@ function App() {
         </div>
       </section>
 
-      <section className="section-grid reveal" aria-labelledby="experience-title">
-        <div className="sticky-heading">
+      <section className="experience-section reveal" aria-labelledby="experience-title">
+        <div className="section-heading">
           <p className="section-label">Experience</p>
           <h2 id="experience-title">Recent roles and impact</h2>
         </div>
         <div className="timeline">
-          {experience.map((job, index) => (
-            <article className="timeline-card" key={`${job.company}-${job.role}`} style={{ '--delay': `${index * 90}ms` }}>
+          {experience.map((job) => (
+            <article className="timeline-card" key={`${job.company}-${job.role}`}>
               <div className="timeline-meta">
                 <span>{job.period}</span>
                 <span>{job.location}</span>
@@ -502,6 +479,7 @@ function App() {
           <a href="mailto:vladnik1999@gmail.com">vladnik1999@gmail.com</a>
         </div>
       </footer>
+      <CustomCursor />
     </main>
   );
 }
