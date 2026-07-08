@@ -17,13 +17,10 @@
   box-sizing: border-box;
 }
 
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
+html {
+  /* Matches the body gradient so fast-scroll paint lag and overscroll
+     never flash white. */
+  background-color: var(--bg);
 }
 
 body {
@@ -84,7 +81,7 @@ a {
 .hero-grid {
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(28px, 5vw, 72px);
   align-items: center;
 }
@@ -274,15 +271,29 @@ a {
   transition: transform 220ms ease, box-shadow 220ms ease;
 }
 
-.hero-showcase::before {
-  position: absolute;
-  top: -14px;
-  right: 26px;
-  width: 44%;
-  height: 14px;
-  content: '';
-  border-radius: 8px 8px 0 0;
-  background: linear-gradient(90deg, var(--red), var(--gold), var(--green));
+.traffic-lights {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.traffic-lights i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.traffic-lights i:nth-child(1) {
+  background: #ff5f57;
+}
+
+.traffic-lights i:nth-child(2) {
+  background: #febc2e;
+}
+
+.traffic-lights i:nth-child(3) {
+  background: #28c840;
 }
 
 .showcase-topline,
@@ -300,11 +311,13 @@ a {
 }
 
 .showcase-topline {
+  /* macOS window title bar: flush with the card edges. */
   align-items: center;
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid rgba(244, 238, 227, 0.1);
-  border-radius: 8px;
+  min-height: 40px;
+  margin: -18px -18px 0;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(244, 238, 227, 0.1);
+  border-radius: 8px 8px 0 0;
   background: rgba(255, 255, 255, 0.04);
 }
 
@@ -772,27 +785,77 @@ a {
   overflow: hidden;
 }
 
-.laptop-scrub-video {
+.laptop-scrub-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  display: block;
+}
+
+.laptop-scrub-loader {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  width: min(220px, 40vw);
+  height: 2px;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.laptop-scrub-loader span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(var(--p, 0));
+  background: rgba(255, 255, 255, 0.7);
+  transition: transform 0.2s ease;
 }
 
 .laptop-scrub-screen {
+  /* Virtual laptop display: JS moves/scales this to track the rendered
+     screen. Size must match BASE_W/BASE_H in LaptopScrub.jsx. */
   position: absolute;
-  /* Tune these two values so the overlay sits on the laptop screen in the render. */
-  top: 47%;
-  left: 50%;
-  width: min(44vw, 840px);
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  display: grid;
+  width: 1000px;
+  height: 680px;
+  transform-origin: 0 0;
+  place-items: center;
   opacity: 0;
+  will-change: transform, opacity;
+}
+
+.laptop-scrub-screen .hero-showcase {
+  width: min(640px, 66%);
 }
 
 @media (max-width: 980px), (prefers-reduced-motion: reduce) {
+  /* No scrub animation: show the showcase card as a normal section. */
   .laptop-scrub {
+    height: auto;
+    padding: 24px clamp(20px, 6vw, 48px) 48px;
+  }
+
+  .laptop-scrub-canvas,
+  .laptop-scrub-loader {
     display: none;
+  }
+
+  .laptop-scrub-screen {
+    position: static;
+    width: auto;
+    height: auto;
+    opacity: 1;
+    transform: none;
+  }
+
+  .laptop-scrub-screen .hero-showcase {
+    width: min(640px, 100%);
+    margin: 0 auto;
   }
 }
 

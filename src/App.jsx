@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import CustomCursor from './CustomCursor';
 import ParticleField from './ParticleField';
+import LaptopScrub from './LaptopScrub';
 import useScrollEffects from './useScrollEffects';
 import './App.css';
 
@@ -307,36 +308,44 @@ function App() {
             </div>
           </div>
 
-          <aside className="hero-showcase reveal" aria-label="Developer profile highlights">
-            <div className="showcase-topline">
-              <span>current_stack.tsx</span>
-              <span>production-ready</span>
-            </div>
-            <div className="showcase-focus">
-              <p>Core delivery</p>
-              <h2>Pixel-perfect frontend, practical backend, measurable product flow.</h2>
-            </div>
-            <div className="capability-list" aria-label="Technical capabilities">
-              {heroCapabilities.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
-            </div>
-            <div className="hero-metric-grid">
-              {stats.map((item) => (
-                <div className="hero-metric" key={item.label}>
-                  <strong>{item.value}</strong>
-                  <span>{item.label}</span>
-                </div>
-              ))}
-            </div>
-            <div className="showcase-footer">
-              <span>API integrations</span>
-              <span>CRM tracking</span>
-              <span>Payment flows</span>
-            </div>
-          </aside>
         </div>
       </section>
+
+      <LaptopScrub>
+        <aside className="hero-showcase reveal" aria-label="Developer profile highlights">
+          <div className="showcase-topline">
+            <span className="traffic-lights" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span>current_stack.tsx</span>
+            <span>production-ready</span>
+          </div>
+          <div className="showcase-focus">
+            <p>Core delivery</p>
+            <h2>Pixel-perfect frontend, practical backend, measurable product flow.</h2>
+          </div>
+          <div className="capability-list" aria-label="Technical capabilities">
+            {heroCapabilities.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+          <div className="hero-metric-grid">
+            {stats.map((item) => (
+              <div className="hero-metric" key={item.label}>
+                <strong>{item.value}</strong>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="showcase-footer">
+            <span>API integrations</span>
+            <span>CRM tracking</span>
+            <span>Payment flows</span>
+          </div>
+        </aside>
+      </LaptopScrub>
 
       <section className="section-grid section-intro reveal" aria-labelledby="summary-title">
         <div>
