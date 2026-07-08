@@ -765,6 +765,37 @@ a {
   pointer-events: none;
 }
 
+.laptop-scrub {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.laptop-scrub-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.laptop-scrub-screen {
+  position: absolute;
+  /* Tune these two values so the overlay sits on the laptop screen in the render. */
+  top: 47%;
+  left: 50%;
+  width: min(44vw, 840px);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+@media (max-width: 980px), (prefers-reduced-motion: reduce) {
+  .laptop-scrub {
+    display: none;
+  }
+}
+
 html.has-custom-cursor,
 html.has-custom-cursor * {
   cursor: none !important;
