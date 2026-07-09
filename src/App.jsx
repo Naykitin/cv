@@ -15,6 +15,7 @@ import {
 import CustomCursor from './CustomCursor';
 import ParticleField from './ParticleField';
 import LaptopScrub from './LaptopScrub';
+import HeroTerminal from './HeroTerminal';
 import useScrollEffects from './useScrollEffects';
 import './App.css';
 
@@ -308,6 +309,7 @@ function App() {
             </div>
           </div>
 
+          <HeroTerminal />
         </div>
       </section>
 

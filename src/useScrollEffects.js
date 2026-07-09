@@ -118,8 +118,11 @@ export default function useScrollEffects() {
           .from(intro.querySelector('.summary-copy'), { x: 72, autoAlpha: 0, duration: 0.9 }, '-=0.6');
       }
 
-      // Expertise: heading settles from a blur, cards tilt up like small
-      // opening lids, skills cascade in. Reverses on leave.
+      // Expertise: heading settles from a blur, cards rise in with a soft
+      // scale, skills cascade after. Plays on arrival and stays put while
+      // the section is on screen — it only resets once the section has
+      // dropped fully below the viewport, so revisits replay cleanly and
+      // nothing reverses mid-read.
       const cardsSection = document.querySelector('.cards-section');
 
       if (cardsSection) {
@@ -129,8 +132,7 @@ export default function useScrollEffects() {
             scrollTrigger: {
               trigger: cardsSection,
               start: 'top 75%',
-              end: 'bottom 15%',
-              toggleActions: 'play reverse play reverse',
+              toggleActions: 'play none none reverse',
             },
           })
           .from(cardsSection.querySelector('.section-label'), { x: -36, autoAlpha: 0, duration: 0.5 })
@@ -143,13 +145,12 @@ export default function useScrollEffects() {
           .from(
             cardsSection.querySelectorAll('.service-card'),
             {
-              y: 72,
+              y: 48,
               autoAlpha: 0,
-              rotationX: -16,
-              transformPerspective: 900,
+              scale: 0.96,
               transformOrigin: '50% 100%',
-              duration: 0.8,
-              stagger: 0.12,
+              duration: 0.7,
+              stagger: 0.1,
               // Let the CSS :hover translateY work again once settled.
               clearProps: 'transform',
             },
@@ -157,13 +158,14 @@ export default function useScrollEffects() {
           )
           .from(
             cardsSection.querySelectorAll('.skill-cloud span'),
-            { y: 16, autoAlpha: 0, duration: 0.45, ease: 'power2.out', stagger: 0.035 },
-            '-=0.4'
+            { y: 14, autoAlpha: 0, duration: 0.4, ease: 'power2.out', stagger: 0.03 },
+            '-=0.35'
           );
       }
 
       // Personal project: copy column builds up, highlights slide in from
-      // alternating sides. Reverses on leave.
+      // alternating sides. Plays on arrival, stays put while on screen, and
+      // resets only after dropping fully below the viewport.
       const project = document.querySelector('.project-section');
 
       if (project) {
@@ -173,8 +175,7 @@ export default function useScrollEffects() {
             scrollTrigger: {
               trigger: project,
               start: 'top 78%',
-              end: 'bottom 15%',
-              toggleActions: 'play reverse play reverse',
+              toggleActions: 'play none none reverse',
             },
           })
           .from(project.querySelector('.section-label'), { x: -36, autoAlpha: 0, duration: 0.5 })
@@ -185,7 +186,10 @@ export default function useScrollEffects() {
             '-=0.25'
           )
           .from(
-            project.querySelectorAll('.project-copy p, .project-copy .text-link'),
+            // The label is a <p> too — exclude it, it has its own tween above
+            // (double-targeting a .from() makes it capture the hidden state
+            // as its destination and the element never appears).
+            project.querySelectorAll('.project-copy p:not(.section-label), .project-copy .text-link'),
             { y: 28, autoAlpha: 0, duration: 0.6, stagger: 0.1 },
             '-=0.45'
           )

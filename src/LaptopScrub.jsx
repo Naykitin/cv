@@ -16,7 +16,7 @@ const framePath = (i) =>
   `${FRAME_DIR}/frame_${String(i).padStart(4, '0')}.webp`;
 
 // Total scroll distance (px) mapped onto the full sequence. More = slower scrub.
-const SCROLL_LENGTH = 3000;
+const SCROLL_LENGTH = 2200;
 
 // The frame zoom completes at this fraction of the pin; the rest is a tail
 // where the rendered laptop dissolves, leaving the mac window on the page
@@ -42,6 +42,19 @@ const BASE_H = 680;
 // Screen content fades in as the lid finishes opening and the dolly begins.
 const FADE_IN_START = 0.4;
 const FADE_IN_END = 0.52;
+
+// The showcase window must always fit inside the viewport, so its scale is
+// capped at these fractions. The cap blends in via a smooth-min: 1:1 display
+// tracking everywhere, with just the corner into the cap rounded off.
+const OVERLAY_MAX_VW = 0.96;
+const OVERLAY_MAX_VH = 0.92;
+
+// Smooth minimum: equals the lesser of a/b away from their crossover and
+// rounds the corner within ±k of it, so the capped scale has no kink.
+function softMin(a, b, k) {
+  const h = Math.max(0, Math.min(1, 0.5 + (0.5 * (b - a)) / k));
+  return a * h + b * (1 - h) - k * h * (1 - h);
+}
 
 function displayRectAt(progress) {
   const frames = DISPLAY_KEYFRAMES;
@@ -105,11 +118,13 @@ function LaptopScrub({ children }) {
       canvas.height = Math.round(clientHeight * dpr);
     };
 
-    // "Contain" fit of the 1600x1000 frame inside the canvas, in CSS pixels.
-    const containFit = () => {
+    // "Cover" fit of the 1600x1000 frame over the canvas, in CSS pixels:
+    // the frame always fills the full viewport, cropping top/bottom (or
+    // sides) instead of letterboxing.
+    const coverFit = () => {
       const cw = canvas.clientWidth;
       const ch = canvas.clientHeight;
-      const scale = Math.min(cw / IMAGE_W, ch / IMAGE_H);
+      const scale = Math.max(cw / IMAGE_W, ch / IMAGE_H);
       return {
         scale,
         offsetX: (cw - IMAGE_W * scale) / 2,
@@ -125,7 +140,7 @@ function LaptopScrub({ children }) {
       const cw = canvas.width;
       const ch = canvas.height;
       ctx.clearRect(0, 0, cw, ch);
-      const scale = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
+      const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
       const dw = img.naturalWidth * scale;
       const dh = img.naturalHeight * scale;
       ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
@@ -141,6 +156,18 @@ function LaptopScrub({ children }) {
       rafId = requestAnimationFrame(() => drawFrame(clamped));
     };
 
+    // Showcase base size (untransformed layout px), cached so the scrub
+    // never forces layout reads mid-animation.
+    let showcaseW = 0;
+    let showcaseH = 0;
+    const measureShowcase = () => {
+      const card = screenRef.current?.firstElementChild;
+      if (card && card.offsetWidth > 0) {
+        showcaseW = card.offsetWidth;
+        showcaseH = card.offsetHeight;
+      }
+    };
+
     // Pin the DOM overlay to the rendered display: uniform scale + center.
     const positionOverlay = (p) => {
       const screen = screenRef.current;
@@ -148,9 +175,15 @@ function LaptopScrub({ children }) {
         return;
       }
       const rect = displayRectAt(p);
-      const fit = containFit();
-      const w = rect.w * fit.scale;
-      const scale = w / BASE_W;
+      const fit = coverFit();
+      let scale = (rect.w * fit.scale) / BASE_W;
+      if (showcaseW > 0 && showcaseH > 0) {
+        const maxScale = Math.min(
+          (canvas.clientWidth * OVERLAY_MAX_VW) / showcaseW,
+          (canvas.clientHeight * OVERLAY_MAX_VH) / showcaseH
+        );
+        scale = softMin(scale, maxScale, maxScale * 0.18);
+      }
       const x = fit.offsetX + rect.cx * fit.scale - (BASE_W * scale) / 2;
       const y = fit.offsetY + rect.cy * fit.scale - (BASE_H * scale) / 2;
       gsap.set(screen, { x, y, scale });
@@ -179,13 +212,23 @@ function LaptopScrub({ children }) {
       const proxy = { progress: 0 };
 
       sizeCanvas();
+      measureShowcase();
       positionOverlay(0);
+      const overlayProgress = () => Math.min(1, proxy.progress / ZOOM_END);
       const onResize = () => {
         sizeCanvas();
+        measureShowcase();
         drawFrame(currentIndex < 0 ? 0 : currentIndex);
-        positionOverlay(proxy.progress);
+        positionOverlay(overlayProgress());
       };
       window.addEventListener('resize', onResize);
+      // Webfont swap changes the card's height; re-measure once fonts land.
+      if (document.fonts?.ready) {
+        document.fonts.ready.then(() => {
+          measureShowcase();
+          positionOverlay(overlayProgress());
+        });
+      }
 
       const timeline = gsap.timeline({
         scrollTrigger: {
@@ -198,6 +241,12 @@ function LaptopScrub({ children }) {
         },
       });
 
+      // While the overlay is being scaled, its raster is cached at base size
+      // and upscaled (soft/blurry text). Once the scrub rests at the end,
+      // `is-settled` drops layer promotion + the 3D tilt so the browser
+      // re-rasterizes the window crisp at its final scale.
+      let settleTimer = 0;
+
       timeline.to(
         proxy,
         {
@@ -209,6 +258,14 @@ function LaptopScrub({ children }) {
             const fp = Math.min(1, proxy.progress / ZOOM_END);
             renderIndex(Math.round(fp * (FRAME_COUNT - 1)));
             positionOverlay(fp);
+            window.clearTimeout(settleTimer);
+            if (proxy.progress >= 0.99) {
+              settleTimer = window.setTimeout(() => {
+                section.classList.add('is-settled');
+              }, 200);
+            } else {
+              section.classList.remove('is-settled');
+            }
           },
         },
         0
@@ -235,6 +292,8 @@ function LaptopScrub({ children }) {
 
       return () => {
         window.removeEventListener('resize', onResize);
+        window.clearTimeout(settleTimer);
+        section.classList.remove('is-settled');
         timeline.scrollTrigger?.kill();
         timeline.kill();
       };
