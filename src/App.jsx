@@ -62,7 +62,7 @@ const experience = [
   {
     role: 'Full Stack Developer',
     company: 'Foxes',
-    period: 'February 2023 - April 2026',
+    period: 'November 2023 - April 2026',
     location: 'Remote',
     points: [
       'Built dynamic React and Next.js interfaces, landing pages, API-powered forms, and data-driven components.',
