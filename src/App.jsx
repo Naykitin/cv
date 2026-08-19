@@ -106,11 +106,40 @@ const experience = [
   },
 ];
 
-const projectHighlights = [
-  'Headless CMS architecture with Next.js 15 App Router and WordPress/WooCommerce as a decoupled backend.',
-  'GraphQL and Apollo Client data fetching to reduce payload size and keep queries precise.',
-  'React Server Components, Turbopack, strict TypeScript interfaces, and mobile-first Tailwind styling.',
-  'Linux-based WSL 2 workflow for environment parity and Node.js stability.',
+const projects = [
+  {
+    label: 'Personal project',
+    title: 'Headless WordPress & Next.js Platform',
+    description:
+      'An in-progress platform exploring a modern WordPress architecture with Next.js, TypeScript, GraphQL, Apollo, Tailwind CSS, and WooCommerce.',
+    repoUrl: 'https://github.com/Naykitin/frontend-next',
+    liveUrl: null,
+    highlights: [
+      'Headless CMS architecture with Next.js 15 App Router and WordPress/WooCommerce as a decoupled backend.',
+      'GraphQL and Apollo Client data fetching to reduce payload size and keep queries precise.',
+      'React Server Components, Turbopack, strict TypeScript interfaces, and mobile-first Tailwind styling.',
+      'Linux-based WSL 2 workflow for environment parity and Node.js stability.',
+    ],
+    images: [],
+  },
+  {
+    label: 'Open-source project',
+    title: 'Task Manager — Kanban Board & Time Tracker',
+    description:
+      'A free, self-hosted Kanban board with built-in time tracking and timesheet reporting, built for my own task management and running entirely on Cloudflare’s free tier. MIT licensed, so anyone can fork it and adapt it to their own workflow.',
+    repoUrl: 'https://github.com/Naykitin/task-manager',
+    liveUrl: 'https://task-manager.naykitin.workers.dev/',
+    highlights: [
+      'A single Cloudflare Worker (TypeScript) serves the React app and every /api/* route — no separate backend, $0 hosting.',
+      'Cloudflare D1 (SQLite) for storage, PBKDF2 password hashing, and signed JWT sessions in HttpOnly cookies.',
+      'Drag-and-drop Kanban board (@dnd-kit) with per-task timers, a timesheet view, and CSV export.',
+      'MIT licensed and built to be forked — open for anyone to copy and adapt to their own workflow.',
+    ],
+    images: [
+      { src: '/task-manager-board.png', alt: 'Task Manager Kanban board with active timers on each task' },
+      { src: '/task-manager-timesheet.png', alt: 'Task Manager timesheet view with hours grouped by task and CSV export' },
+    ],
+  },
 ];
 
 const services = [
@@ -408,25 +437,42 @@ function App() {
         </div>
       </section>
 
-      <section className="project-section reveal" aria-labelledby="project-title">
-        <div className="project-copy">
-          <p className="section-label">Personal project</p>
-          <h2 id="project-title">Headless WordPress & Next.js Platform</h2>
-          <p>
-            An in-progress platform exploring a modern WordPress architecture with Next.js, TypeScript,
-            GraphQL, Apollo, Tailwind CSS, and WooCommerce.
-          </p>
-          <a className="text-link" href="https://github.com/Naykitin/frontend-next" target="_blank" rel="noreferrer">
-            View repository
-            <ArrowUpRight size={16} aria-hidden="true" />
-          </a>
-        </div>
-        <div className="project-list">
-          {projectHighlights.map((item) => (
-            <p key={item}>{item}</p>
-          ))}
-        </div>
-      </section>
+      {projects.map((project) => {
+        const titleId = `project-title-${project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+        return (
+          <section className="project-section reveal" aria-labelledby={titleId} key={project.title}>
+            <div className="project-copy">
+              <p className="section-label">{project.label}</p>
+              <h2 id={titleId}>{project.title}</h2>
+              <p>{project.description}</p>
+              <div className="project-links">
+                <a className="text-link" href={project.repoUrl} target="_blank" rel="noreferrer">
+                  View repository
+                  <ArrowUpRight size={16} aria-hidden="true" />
+                </a>
+                {project.liveUrl && (
+                  <a className="text-link" href={project.liveUrl} target="_blank" rel="noreferrer">
+                    Live demo
+                    <ArrowUpRight size={16} aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+            </div>
+            <div className="project-list">
+              {project.highlights.map((item) => (
+                <p key={item}>{item}</p>
+              ))}
+            </div>
+            {project.images.length > 0 && (
+              <div className="project-media">
+                {project.images.map((image) => (
+                  <img key={image.src} src={image.src} alt={image.alt} loading="lazy" />
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
 
       <section className="education-section reveal" aria-labelledby="education-title">
         <div>
