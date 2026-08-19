@@ -4,15 +4,19 @@ import {
   ArrowUpRight,
   BriefcaseBusiness,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Code2,
   Download,
   GitBranch,
   Mail,
   MapPin,
+  Maximize2,
   Phone,
   Rocket,
   Send,
   Sparkles,
+  X,
 } from 'lucide-react';
 import CustomCursor from './CustomCursor';
 import ParticleField from './ParticleField';
@@ -244,8 +248,47 @@ function App() {
   const [formState, setFormState] = useState({ status: 'idle', message: '' });
   const [showFloatingCta, setShowFloatingCta] = useState(false);
   const [validFields, setValidFields] = useState({ name: false, email: false, message: false });
+  const [lightbox, setLightbox] = useState(null);
 
   useScrollEffects();
+
+  useEffect(() => {
+    if (!lightbox) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setLightbox(null);
+      } else if (event.key === 'ArrowRight') {
+        setLightbox((current) =>
+          current ? { ...current, index: (current.index + 1) % current.images.length } : current
+        );
+      } else if (event.key === 'ArrowLeft') {
+        setLightbox((current) =>
+          current
+            ? { ...current, index: (current.index - 1 + current.images.length) % current.images.length }
+            : current
+        );
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [lightbox]);
+
+  const openLightbox = (images, index, liveUrl) => setLightbox({ images, index, liveUrl });
+  const closeLightbox = () => setLightbox(null);
+  const showNextImage = () =>
+    setLightbox((current) =>
+      current ? { ...current, index: (current.index + 1) % current.images.length } : current
+    );
+  const showPrevImage = () =>
+    setLightbox((current) =>
+      current
+        ? { ...current, index: (current.index - 1 + current.images.length) % current.images.length }
+        : current
+    );
 
   useEffect(() => {
     const hero = document.querySelector('.hero-section');
@@ -530,25 +573,20 @@ function App() {
             </div>
             {project.images.length > 0 && (
               <div className="project-media">
-                {project.images.map((image) =>
-                  project.liveUrl ? (
-                    <a
-                      key={image.src}
-                      className="project-media-link"
-                      href={project.liveUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <img src={image.src} alt={image.alt} loading="lazy" />
-                      <span className="project-media-caption">
-                        View live
-                        <ArrowUpRight size={14} aria-hidden="true" />
-                      </span>
-                    </a>
-                  ) : (
-                    <img key={image.src} src={image.src} alt={image.alt} loading="lazy" />
-                  )
-                )}
+                {project.images.map((image, index) => (
+                  <button
+                    key={image.src}
+                    type="button"
+                    className="project-media-link"
+                    onClick={() => openLightbox(project.images, index, project.liveUrl)}
+                  >
+                    <img src={image.src} alt={image.alt} loading="lazy" />
+                    <span className="project-media-caption">
+                      <Maximize2 size={14} aria-hidden="true" />
+                      View full size
+                    </span>
+                  </button>
+                ))}
               </div>
             )}
           </section>
@@ -688,6 +726,52 @@ function App() {
         <Mail size={16} aria-hidden="true" />
         Start a conversation
       </a>
+
+      {lightbox && (
+        <div className="lightbox" role="dialog" aria-modal="true" onClick={closeLightbox}>
+          <button type="button" className="lightbox-close" onClick={closeLightbox} aria-label="Close">
+            <X size={22} aria-hidden="true" />
+          </button>
+          {lightbox.images.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="lightbox-nav lightbox-prev"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showPrevImage();
+                }}
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={26} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="lightbox-nav lightbox-next"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showNextImage();
+                }}
+                aria-label="Next image"
+              >
+                <ChevronRight size={26} aria-hidden="true" />
+              </button>
+            </>
+          )}
+          <figure className="lightbox-figure" onClick={(event) => event.stopPropagation()}>
+            <img src={lightbox.images[lightbox.index].src} alt={lightbox.images[lightbox.index].alt} />
+            <figcaption>
+              <span>{lightbox.images[lightbox.index].alt}</span>
+              {lightbox.liveUrl && (
+                <a href={lightbox.liveUrl} target="_blank" rel="noreferrer">
+                  View live
+                  <ArrowUpRight size={14} aria-hidden="true" />
+                </a>
+              )}
+            </figcaption>
+          </figure>
+        </div>
+      )}
 
       <CustomCursor />
     </main>

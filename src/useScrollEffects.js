@@ -197,30 +197,12 @@ export default function useScrollEffects() {
             project.querySelectorAll('.project-copy p:not(.section-label), .project-copy .text-link'),
             { y: 28, autoAlpha: 0, duration: 0.6, stagger: 0.1 },
             '-=0.45'
-          )
-          .from(
-            // Read-order reveal, not a left/right ping-pong: these are
-            // evidence lines, not a spatial layout. All claims land together
-            // rather than trickling in one by one.
-            project.querySelectorAll('.project-list p'),
-            {
-              autoAlpha: 0,
-              y: 20,
-              duration: 0.55,
-              clearProps: 'transform',
-            },
-            '-=0.5'
-          )
-          .from(
-            // Every claim gets checked off at once.
-            project.querySelectorAll('.project-list-check'),
-            {
-              scale: 0,
-              duration: 0.4,
-              clearProps: 'transform',
-            },
-            '<'
           );
+
+        // The highlight list (claims + checkmarks) is intentionally left
+        // out of the scroll-reveal timeline — it renders visible with the
+        // rest of the section instead of animating in as its own delayed
+        // beat.
 
         const media = project.querySelectorAll('.project-media > *');
 
