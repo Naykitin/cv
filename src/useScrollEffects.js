@@ -167,13 +167,14 @@ export default function useScrollEffects() {
           );
       }
 
-      // Personal project: copy column builds up, highlights slide in from
-      // alternating sides. Plays on arrival, stays put while on screen, and
-      // resets only after dropping fully below the viewport.
-      const project = document.querySelector('.project-section');
-
-      if (project) {
-        gsap
+      // Project cards: copy column builds up, highlights slide in from
+      // alternating sides, and — the payoff — any real product screenshots
+      // scale in last, after the claims, as the literal proof. Each card on
+      // the page gets its own timeline (there can be more than one project).
+      // Plays on arrival, stays put while on screen, and resets only after
+      // dropping fully below the viewport.
+      document.querySelectorAll('.project-section').forEach((project) => {
+        const timeline = gsap
           .timeline({
             defaults: { ease: 'power3.out' },
             scrollTrigger: {
@@ -198,17 +199,48 @@ export default function useScrollEffects() {
             '-=0.45'
           )
           .from(
+            // Read-order reveal, not a left/right ping-pong: these are
+            // evidence lines, not a spatial layout, so they settle in the
+            // order a reader actually scans them.
             project.querySelectorAll('.project-list p'),
             {
               autoAlpha: 0,
-              x: (index) => (index % 2 ? 64 : -64),
-              duration: 0.7,
+              y: 20,
+              duration: 0.55,
               stagger: 0.12,
               clearProps: 'transform',
             },
             '-=0.5'
+          )
+          .from(
+            // Each claim gets checked off as it lands.
+            project.querySelectorAll('.project-list-check'),
+            {
+              scale: 0,
+              duration: 0.4,
+              stagger: 0.12,
+              clearProps: 'transform',
+            },
+            '<'
           );
-      }
+
+        const media = project.querySelectorAll('.project-media > *');
+
+        if (media.length > 0) {
+          timeline.from(
+            media,
+            {
+              autoAlpha: 0,
+              y: 24,
+              scale: 0.97,
+              duration: 0.6,
+              stagger: 0.15,
+              clearProps: 'transform',
+            },
+            '-=0.25'
+          );
+        }
+      });
 
       // Education: heading settles from a blur, the period stamps in.
       const education = document.querySelector('.education-section');

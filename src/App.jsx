@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import {
   ArrowUpRight,
   BriefcaseBusiness,
+  Check,
   Code2,
   Download,
   GitBranch,
@@ -27,6 +29,30 @@ const defaultPhoneHref = 'https://wa.me/34672806935';
 const uaPhoneHref = 'https://t.me/naykitin';
 const locationApiUrl = 'https://free.freeipapi.com/api/json/';
 const formEndpoint = import.meta.env.VITE_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xkoykqdk';
+
+// Morphs the contact form into its confirmation state via the View
+// Transitions API when the browser supports it and the visitor hasn't
+// asked for reduced motion; otherwise the state update just applies
+// instantly, which is still a complete, good-looking result.
+function runWithViewTransition(updateState) {
+  const supportsViewTransitions = typeof document.startViewTransition === 'function';
+  const prefersReducedMotion =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (supportsViewTransitions && !prefersReducedMotion) {
+    const transition = document.startViewTransition(() => flushSync(updateState));
+    // The DOM update above already ran synchronously via flushSync; these
+    // promises only track the visual animation, which the spec allows the
+    // browser to skip (e.g. a backgrounded tab) without that being an
+    // application error.
+    transition.updateCallbackDone?.catch(() => {});
+    transition.ready?.catch(() => {});
+    transition.finished?.catch(() => {});
+  } else {
+    updateState();
+  }
+}
 
 const stats = [
   { value: '5+', label: 'Years building web products' },
@@ -217,6 +243,7 @@ function App() {
   const { cvFile, phoneHref, phoneNumber } = useLocalizedContact();
   const [formState, setFormState] = useState({ status: 'idle', message: '' });
   const [showFloatingCta, setShowFloatingCta] = useState(false);
+  const [validFields, setValidFields] = useState({ name: false, email: false, message: false });
 
   useScrollEffects();
 
@@ -252,6 +279,19 @@ function App() {
     shell.style.setProperty('--pointer-y', `${event.clientY}px`);
     shell.style.setProperty('--tilt-x', `${(y - 0.5) * -8}deg`);
     shell.style.setProperty('--tilt-y', `${(x - 0.5) * 10}deg`);
+  };
+
+  const handleFieldValidity = (field, element) => {
+    setValidFields((previous) =>
+      previous[field] === element.validity.valid
+        ? previous
+        : { ...previous, [field]: element.validity.valid }
+    );
+  };
+
+  const handleResetForm = () => {
+    setValidFields({ name: false, email: false, message: false });
+    runWithViewTransition(() => setFormState({ status: 'idle', message: '' }));
   };
 
   const handleSubmit = async (event) => {
@@ -293,9 +333,12 @@ function App() {
       }
 
       form.reset();
-      setFormState({
-        status: 'success',
-        message: 'Message sent. I will get back to you soon.',
+      setValidFields({ name: false, email: false, message: false });
+      runWithViewTransition(() => {
+        setFormState({
+          status: 'success',
+          message: "I'll get back to you within a day.",
+        });
       });
     } catch (error) {
       setFormState({
@@ -479,14 +522,33 @@ function App() {
             </div>
             <div className="project-list">
               {project.highlights.map((item) => (
-                <p key={item}>{item}</p>
+                <p key={item}>
+                  <Check className="project-list-check" size={15} aria-hidden="true" />
+                  <span>{item}</span>
+                </p>
               ))}
             </div>
             {project.images.length > 0 && (
               <div className="project-media">
-                {project.images.map((image) => (
-                  <img key={image.src} src={image.src} alt={image.alt} loading="lazy" />
-                ))}
+                {project.images.map((image) =>
+                  project.liveUrl ? (
+                    <a
+                      key={image.src}
+                      className="project-media-link"
+                      href={project.liveUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <img src={image.src} alt={image.alt} loading="lazy" />
+                      <span className="project-media-caption">
+                        View live
+                        <ArrowUpRight size={14} aria-hidden="true" />
+                      </span>
+                    </a>
+                  ) : (
+                    <img key={image.src} src={image.src} alt={image.alt} loading="lazy" />
+                  )
+                )}
               </div>
             )}
           </section>
@@ -526,29 +588,90 @@ function App() {
           </div>
         </div>
 
-        <form className="contact-form" onSubmit={handleSubmit}>
-          <label>
-            Name
-            <input name="name" type="text" autoComplete="name" placeholder="Your name" required />
-          </label>
-          <label>
-            Email
-            <input name="email" type="email" autoComplete="email" placeholder="you@example.com" required />
-          </label>
-          <label>
-            Message
-            <textarea name="message" rows="6" placeholder="Tell me about the project or opportunity" required />
-          </label>
-          <button className="button button-primary" type="submit" disabled={formState.status === 'loading'}>
-            <Send size={18} aria-hidden="true" />
-            {formState.status === 'loading' ? 'Sending...' : 'Send message'}
-          </button>
-          <p className={`form-status ${formState.status}`} aria-live="polite">{formState.message}</p>
-        </form>
+        {formState.status === 'success' ? (
+          <div className="contact-success">
+            <span className="contact-success-icon">
+              <Check size={26} aria-hidden="true" />
+            </span>
+            <h3>Message sent</h3>
+            <p>{formState.message}</p>
+            <button type="button" className="text-link" onClick={handleResetForm}>
+              Send another message
+            </button>
+          </div>
+        ) : (
+          <form className="contact-form" onSubmit={handleSubmit}>
+            <label className="field">
+              Name
+              <span className="field-control">
+                <input
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Your name"
+                  required
+                  onInput={(event) => handleFieldValidity('name', event.target)}
+                />
+                <Check
+                  className={`field-check${validFields.name ? ' is-valid' : ''}`}
+                  size={16}
+                  aria-hidden="true"
+                />
+              </span>
+            </label>
+            <label className="field">
+              Email
+              <span className="field-control">
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  required
+                  onInput={(event) => handleFieldValidity('email', event.target)}
+                />
+                <Check
+                  className={`field-check${validFields.email ? ' is-valid' : ''}`}
+                  size={16}
+                  aria-hidden="true"
+                />
+              </span>
+            </label>
+            <label className="field">
+              Message
+              <span className="field-control">
+                <textarea
+                  name="message"
+                  rows="6"
+                  placeholder="Tell me about the project or opportunity"
+                  required
+                  onInput={(event) => handleFieldValidity('message', event.target)}
+                />
+                <Check
+                  className={`field-check${validFields.message ? ' is-valid' : ''}`}
+                  size={16}
+                  aria-hidden="true"
+                />
+              </span>
+            </label>
+            <button className="button button-primary" type="submit" disabled={formState.status === 'loading'}>
+              <Send size={18} aria-hidden="true" />
+              {formState.status === 'loading' ? 'Sending...' : 'Send message'}
+            </button>
+            <p className={`form-status ${formState.status}`} aria-live="polite">{formState.message}</p>
+          </form>
+        )}
       </section>
 
       <footer className="site-footer">
-        <p>Built with React for a focused, modern CV presentation.</p>
+        <p>
+          Built with React, shipped by a GitHub Actions pipeline that builds and
+          deploys this page straight to{' '}
+          <a href="https://naykitin.github.io/" target="_blank" rel="noreferrer">
+            naykitin.github.io
+          </a>{' '}
+          on every push.
+        </p>
         <div className="footer-actions">
           <a href={cvFile} target="_blank" rel="noreferrer">Open PDF</a>
           <a href="mailto:n.vladyslav@icloud.com">n.vladyslav@icloud.com</a>
