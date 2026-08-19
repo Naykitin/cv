@@ -1,0 +1,48 @@
+name: Deploy to naykitin.github.io
+
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout cv
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Checkout naykitin.github.io
+        uses: actions/checkout@v4
+        with:
+          repository: Naykitin/naykitin.github.io
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          path: pages-repo
+
+      - name: Sync build output
+        run: rsync -av --delete --exclude='.git' build/ pages-repo/
+
+      - name: Commit and push
+        working-directory: pages-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy ${{ github.repository }}@${{ github.sha }}"
+            git push
+          fi
