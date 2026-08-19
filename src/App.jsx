@@ -216,8 +216,26 @@ function App() {
   const shellRef = useRef(null);
   const { cvFile, phoneHref, phoneNumber } = useLocalizedContact();
   const [formState, setFormState] = useState({ status: 'idle', message: '' });
+  const [showFloatingCta, setShowFloatingCta] = useState(false);
 
   useScrollEffects();
+
+  useEffect(() => {
+    const hero = document.querySelector('.hero-section');
+
+    if (!hero || typeof IntersectionObserver !== 'function') {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowFloatingCta(!entry.isIntersecting),
+      { rootMargin: '-72px 0px 0px 0px' }
+    );
+
+    observer.observe(hero);
+
+    return () => observer.disconnect();
+  }, []);
 
   const handlePointerMove = (event) => {
     const shell = shellRef.current;
@@ -489,20 +507,20 @@ function App() {
           <p className="section-label">Contact</p>
           <h2 id="contact-title">Let’s build something fast, clear, and useful.</h2>
           <p>
-            Send a short brief, a role description, or a project idea. The form sends your message
-            through a secure third-party form endpoint.
+            The form is the fastest way to reach me — it sends straight through a secure third-party
+            endpoint. Prefer email or a call? Those work too:
           </p>
           <div className="contact-options">
-            <a href="mailto:n.vladyslav@icloud.com">
-              <Mail size={18} aria-hidden="true" />
-              n.vladyslav@icloud.com
-            </a>
             <a href="mailto:vladnik1999@gmail.com">
-              <Mail size={18} aria-hidden="true" />
+              <Mail size={16} aria-hidden="true" />
               vladnik1999@gmail.com
             </a>
+            <a href="mailto:n.vladyslav@icloud.com">
+              <Mail size={16} aria-hidden="true" />
+              n.vladyslav@icloud.com
+            </a>
             <a href={phoneHref} target="_blank" rel="noreferrer">
-              <Phone size={18} aria-hidden="true" />
+              <Phone size={16} aria-hidden="true" />
               {phoneNumber}
             </a>
           </div>
@@ -537,6 +555,17 @@ function App() {
           <a href="mailto:vladnik1999@gmail.com">vladnik1999@gmail.com</a>
         </div>
       </footer>
+
+      <a
+        className={`floating-cta${showFloatingCta ? ' is-visible' : ''}`}
+        href="#contact"
+        aria-hidden={!showFloatingCta}
+        tabIndex={showFloatingCta ? 0 : -1}
+      >
+        <Mail size={16} aria-hidden="true" />
+        Start a conversation
+      </a>
+
       <CustomCursor />
     </main>
   );

@@ -1,0 +1,23 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "instrument sans",
+        "createdAt": "2026-08-19T11:14:53.825Z",
+        "reason": "Pre-existing site typography from before this session; PRODUCT.md (impeccable init) records the incumbent visual identity as intentional and to be preserved"
+      },
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "src/App.css"
+        ],
+        "createdAt": "2026-08-19T11:14:53.910Z",
+        "reason": "Pre-existing decorative grid background from before this session; PRODUCT.md (impeccable init) records the incumbent visual identity as intentional and to be preserved"
+      }
+    ]
+  }
+}

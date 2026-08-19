@@ -68,6 +68,10 @@ export default function useScrollEffects() {
             start: 'top top',
             end: () => `+=${getDistance()}`,
             pin: true,
+            // GSAP's default pin (position: fixed) escapes .portfolio-shell's
+            // untransformed overflow: hidden and bleeds the translated track
+            // past the viewport, inflating the document's horizontal scroll.
+            pinType: 'transform',
             scrub: 1,
             anticipatePin: 1,
             invalidateOnRefresh: true,
