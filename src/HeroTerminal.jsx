@@ -72,9 +72,10 @@ const SCRIPT = [
   },
   { type: 'out', segs: [{ t: '};', c: 'ink' }] },
   { type: 'out', segs: [] },
-  { type: 'cmd', segs: [{ t: 'npm run ship', c: 'ink' }, { t: ' --prod', c: 'blue' }] },
+  { type: 'cmd', segs: [{ t: 'git push origin ', c: 'ink' }, { t: 'deploy', c: 'blue' }] },
+  { type: 'out', segs: [{ t: '→ GitHub Actions: build + deploy triggered', c: 'muted' }] },
   { type: 'out', segs: [{ t: '✓ 128 modules transformed in 1.4s', c: 'green' }] },
-  { type: 'out', segs: [{ t: '✓ integrations wired · 0 errors', c: 'green' }] },
+  { type: 'out', segs: [{ t: '✓ pushed to naykitin.github.io · 0 errors', c: 'green' }] },
   { type: 'out', segs: [{ t: '→ live on production', c: 'gold' }] },
 ];
 

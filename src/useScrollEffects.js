@@ -68,6 +68,10 @@ export default function useScrollEffects() {
             start: 'top top',
             end: () => `+=${getDistance()}`,
             pin: true,
+            // GSAP's default pin (position: fixed) escapes .portfolio-shell's
+            // untransformed overflow: hidden and bleeds the translated track
+            // past the viewport, inflating the document's horizontal scroll.
+            pinType: 'transform',
             scrub: 1,
             anticipatePin: 1,
             invalidateOnRefresh: true,
@@ -163,13 +167,14 @@ export default function useScrollEffects() {
           );
       }
 
-      // Personal project: copy column builds up, highlights slide in from
-      // alternating sides. Plays on arrival, stays put while on screen, and
-      // resets only after dropping fully below the viewport.
-      const project = document.querySelector('.project-section');
-
-      if (project) {
-        gsap
+      // Project cards: copy column builds up, highlights slide in from
+      // alternating sides, and — the payoff — any real product screenshots
+      // scale in last, after the claims, as the literal proof. Each card on
+      // the page gets its own timeline (there can be more than one project).
+      // Plays on arrival, stays put while on screen, and resets only after
+      // dropping fully below the viewport.
+      document.querySelectorAll('.project-section').forEach((project) => {
+        const timeline = gsap
           .timeline({
             defaults: { ease: 'power3.out' },
             scrollTrigger: {
@@ -192,19 +197,30 @@ export default function useScrollEffects() {
             project.querySelectorAll('.project-copy p:not(.section-label), .project-copy .text-link'),
             { y: 28, autoAlpha: 0, duration: 0.6, stagger: 0.1 },
             '-=0.45'
-          )
-          .from(
-            project.querySelectorAll('.project-list p'),
+          );
+
+        // The highlight list (claims + checkmarks) is intentionally left
+        // out of the scroll-reveal timeline — it renders visible with the
+        // rest of the section instead of animating in as its own delayed
+        // beat.
+
+        const media = project.querySelectorAll('.project-media > *');
+
+        if (media.length > 0) {
+          timeline.from(
+            media,
             {
               autoAlpha: 0,
-              x: (index) => (index % 2 ? 64 : -64),
-              duration: 0.7,
-              stagger: 0.12,
+              y: 24,
+              scale: 0.97,
+              duration: 0.6,
+              stagger: 0.15,
               clearProps: 'transform',
             },
-            '-=0.5'
+            '-=0.25'
           );
-      }
+        }
+      });
 
       // Education: heading settles from a blur, the period stamps in.
       const education = document.querySelector('.education-section');

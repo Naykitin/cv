@@ -1,16 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import {
   ArrowUpRight,
   BriefcaseBusiness,
+  Check,
+  ChevronLeft,
+  ChevronRight,
   Code2,
   Download,
   GitBranch,
   Mail,
   MapPin,
+  Maximize2,
   Phone,
   Rocket,
   Send,
   Sparkles,
+  X,
 } from 'lucide-react';
 import CustomCursor from './CustomCursor';
 import ParticleField from './ParticleField';
@@ -27,6 +33,30 @@ const defaultPhoneHref = 'https://wa.me/34672806935';
 const uaPhoneHref = 'https://t.me/naykitin';
 const locationApiUrl = 'https://free.freeipapi.com/api/json/';
 const formEndpoint = import.meta.env.VITE_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xkoykqdk';
+
+// Morphs the contact form into its confirmation state via the View
+// Transitions API when the browser supports it and the visitor hasn't
+// asked for reduced motion; otherwise the state update just applies
+// instantly, which is still a complete, good-looking result.
+function runWithViewTransition(updateState) {
+  const supportsViewTransitions = typeof document.startViewTransition === 'function';
+  const prefersReducedMotion =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (supportsViewTransitions && !prefersReducedMotion) {
+    const transition = document.startViewTransition(() => flushSync(updateState));
+    // The DOM update above already ran synchronously via flushSync; these
+    // promises only track the visual animation, which the spec allows the
+    // browser to skip (e.g. a backgrounded tab) without that being an
+    // application error.
+    transition.updateCallbackDone?.catch(() => {});
+    transition.ready?.catch(() => {});
+    transition.finished?.catch(() => {});
+  } else {
+    updateState();
+  }
+}
 
 const stats = [
   { value: '5+', label: 'Years building web products' },
@@ -56,6 +86,7 @@ const expertise = [
   'PHP',
   'CRM Integration',
   'SEO Optimization',
+  'CI/CD Pipelines',
 ];
 
 const experience = [
@@ -106,11 +137,40 @@ const experience = [
   },
 ];
 
-const projectHighlights = [
-  'Headless CMS architecture with Next.js 15 App Router and WordPress/WooCommerce as a decoupled backend.',
-  'GraphQL and Apollo Client data fetching to reduce payload size and keep queries precise.',
-  'React Server Components, Turbopack, strict TypeScript interfaces, and mobile-first Tailwind styling.',
-  'Linux-based WSL 2 workflow for environment parity and Node.js stability.',
+const projects = [
+  {
+    label: 'Personal project',
+    title: 'Headless WordPress & Next.js Platform',
+    description:
+      'An in-progress platform exploring a modern WordPress architecture with Next.js, TypeScript, GraphQL, Apollo, Tailwind CSS, and WooCommerce.',
+    repoUrl: 'https://github.com/Naykitin/frontend-next',
+    liveUrl: null,
+    highlights: [
+      'Headless CMS architecture with Next.js 15 App Router and WordPress/WooCommerce as a decoupled backend.',
+      'GraphQL and Apollo Client data fetching to reduce payload size and keep queries precise.',
+      'React Server Components, Turbopack, strict TypeScript interfaces, and mobile-first Tailwind styling.',
+      'Linux-based WSL 2 workflow for environment parity and Node.js stability.',
+    ],
+    images: [],
+  },
+  {
+    label: 'Open-source project',
+    title: 'Task Manager — Kanban Board & Time Tracker',
+    description:
+      'A free, self-hosted Kanban board with built-in time tracking and timesheet reporting, built for my own task management and running entirely on Cloudflare’s free tier. MIT licensed, so anyone can fork it and adapt it to their own workflow.',
+    repoUrl: 'https://github.com/Naykitin/task-manager',
+    liveUrl: 'https://task-manager.naykitin.workers.dev/',
+    highlights: [
+      'A single Cloudflare Worker (TypeScript) serves the React app and every /api/* route — no separate backend, $0 hosting.',
+      'Cloudflare D1 (SQLite) for storage, PBKDF2 password hashing, and signed JWT sessions in HttpOnly cookies.',
+      'Drag-and-drop Kanban board (@dnd-kit) with per-task timers, a timesheet view, and CSV export.',
+      'MIT licensed and built to be forked — open for anyone to copy and adapt to their own workflow.',
+    ],
+    images: [
+      { src: '/task-manager-board.png', alt: 'Task Manager Kanban board with active timers on each task' },
+      { src: '/task-manager-timesheet.png', alt: 'Task Manager timesheet view with hours grouped by task and CSV export' },
+    ],
+  },
 ];
 
 const services = [
@@ -186,8 +246,66 @@ function App() {
   const shellRef = useRef(null);
   const { cvFile, phoneHref, phoneNumber } = useLocalizedContact();
   const [formState, setFormState] = useState({ status: 'idle', message: '' });
+  const [showFloatingCta, setShowFloatingCta] = useState(false);
+  const [validFields, setValidFields] = useState({ name: false, email: false, message: false });
+  const [lightbox, setLightbox] = useState(null);
 
   useScrollEffects();
+
+  useEffect(() => {
+    if (!lightbox) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setLightbox(null);
+      } else if (event.key === 'ArrowRight') {
+        setLightbox((current) =>
+          current ? { ...current, index: (current.index + 1) % current.images.length } : current
+        );
+      } else if (event.key === 'ArrowLeft') {
+        setLightbox((current) =>
+          current
+            ? { ...current, index: (current.index - 1 + current.images.length) % current.images.length }
+            : current
+        );
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [lightbox]);
+
+  const openLightbox = (images, index, liveUrl) => setLightbox({ images, index, liveUrl });
+  const closeLightbox = () => setLightbox(null);
+  const showNextImage = () =>
+    setLightbox((current) =>
+      current ? { ...current, index: (current.index + 1) % current.images.length } : current
+    );
+  const showPrevImage = () =>
+    setLightbox((current) =>
+      current
+        ? { ...current, index: (current.index - 1 + current.images.length) % current.images.length }
+        : current
+    );
+
+  useEffect(() => {
+    const hero = document.querySelector('.hero-section');
+
+    if (!hero || typeof IntersectionObserver !== 'function') {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowFloatingCta(!entry.isIntersecting),
+      { rootMargin: '-72px 0px 0px 0px' }
+    );
+
+    observer.observe(hero);
+
+    return () => observer.disconnect();
+  }, []);
 
   const handlePointerMove = (event) => {
     const shell = shellRef.current;
@@ -204,6 +322,19 @@ function App() {
     shell.style.setProperty('--pointer-y', `${event.clientY}px`);
     shell.style.setProperty('--tilt-x', `${(y - 0.5) * -8}deg`);
     shell.style.setProperty('--tilt-y', `${(x - 0.5) * 10}deg`);
+  };
+
+  const handleFieldValidity = (field, element) => {
+    setValidFields((previous) =>
+      previous[field] === element.validity.valid
+        ? previous
+        : { ...previous, [field]: element.validity.valid }
+    );
+  };
+
+  const handleResetForm = () => {
+    setValidFields({ name: false, email: false, message: false });
+    runWithViewTransition(() => setFormState({ status: 'idle', message: '' }));
   };
 
   const handleSubmit = async (event) => {
@@ -245,9 +376,12 @@ function App() {
       }
 
       form.reset();
-      setFormState({
-        status: 'success',
-        message: 'Message sent. I will get back to you soon.',
+      setValidFields({ name: false, email: false, message: false });
+      runWithViewTransition(() => {
+        setFormState({
+          status: 'success',
+          message: "I'll get back to you within a day.",
+        });
       });
     } catch (error) {
       setFormState({
@@ -408,25 +542,56 @@ function App() {
         </div>
       </section>
 
-      <section className="project-section reveal" aria-labelledby="project-title">
-        <div className="project-copy">
-          <p className="section-label">Personal project</p>
-          <h2 id="project-title">Headless WordPress & Next.js Platform</h2>
-          <p>
-            An in-progress platform exploring a modern WordPress architecture with Next.js, TypeScript,
-            GraphQL, Apollo, Tailwind CSS, and WooCommerce.
-          </p>
-          <a className="text-link" href="https://github.com/Naykitin/frontend-next" target="_blank" rel="noreferrer">
-            View repository
-            <ArrowUpRight size={16} aria-hidden="true" />
-          </a>
-        </div>
-        <div className="project-list">
-          {projectHighlights.map((item) => (
-            <p key={item}>{item}</p>
-          ))}
-        </div>
-      </section>
+      {projects.map((project) => {
+        const titleId = `project-title-${project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+        return (
+          <section className="project-section reveal" aria-labelledby={titleId} key={project.title}>
+            <div className="project-copy">
+              <p className="section-label">{project.label}</p>
+              <h2 id={titleId}>{project.title}</h2>
+              <p>{project.description}</p>
+              <div className="project-links">
+                <a className="text-link" href={project.repoUrl} target="_blank" rel="noreferrer">
+                  View repository
+                  <ArrowUpRight size={16} aria-hidden="true" />
+                </a>
+                {project.liveUrl && (
+                  <a className="text-link" href={project.liveUrl} target="_blank" rel="noreferrer">
+                    Live demo
+                    <ArrowUpRight size={16} aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+            </div>
+            <div className="project-list">
+              {project.highlights.map((item) => (
+                <p key={item}>
+                  <Check className="project-list-check" size={15} aria-hidden="true" />
+                  <span>{item}</span>
+                </p>
+              ))}
+            </div>
+            {project.images.length > 0 && (
+              <div className="project-media">
+                {project.images.map((image, index) => (
+                  <button
+                    key={image.src}
+                    type="button"
+                    className="project-media-link"
+                    onClick={() => openLightbox(project.images, index, project.liveUrl)}
+                  >
+                    <img src={image.src} alt={image.alt} loading="lazy" />
+                    <span className="project-media-caption">
+                      <Maximize2 size={14} aria-hidden="true" />
+                      View full size
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
 
       <section className="education-section reveal" aria-labelledby="education-title">
         <div>
@@ -442,54 +607,172 @@ function App() {
           <p className="section-label">Contact</p>
           <h2 id="contact-title">Let’s build something fast, clear, and useful.</h2>
           <p>
-            Send a short brief, a role description, or a project idea. The form sends your message
-            through a secure third-party form endpoint.
+            The form is the fastest way to reach me — it sends straight through a secure third-party
+            endpoint. Prefer email or a call? Those work too:
           </p>
           <div className="contact-options">
-            <a href="mailto:n.vladyslav@icloud.com">
-              <Mail size={18} aria-hidden="true" />
-              n.vladyslav@icloud.com
-            </a>
             <a href="mailto:vladnik1999@gmail.com">
-              <Mail size={18} aria-hidden="true" />
+              <Mail size={16} aria-hidden="true" />
               vladnik1999@gmail.com
             </a>
+            <a href="mailto:n.vladyslav@icloud.com">
+              <Mail size={16} aria-hidden="true" />
+              n.vladyslav@icloud.com
+            </a>
             <a href={phoneHref} target="_blank" rel="noreferrer">
-              <Phone size={18} aria-hidden="true" />
+              <Phone size={16} aria-hidden="true" />
               {phoneNumber}
             </a>
           </div>
         </div>
 
-        <form className="contact-form" onSubmit={handleSubmit}>
-          <label>
-            Name
-            <input name="name" type="text" autoComplete="name" placeholder="Your name" required />
-          </label>
-          <label>
-            Email
-            <input name="email" type="email" autoComplete="email" placeholder="you@example.com" required />
-          </label>
-          <label>
-            Message
-            <textarea name="message" rows="6" placeholder="Tell me about the project or opportunity" required />
-          </label>
-          <button className="button button-primary" type="submit" disabled={formState.status === 'loading'}>
-            <Send size={18} aria-hidden="true" />
-            {formState.status === 'loading' ? 'Sending...' : 'Send message'}
-          </button>
-          <p className={`form-status ${formState.status}`} aria-live="polite">{formState.message}</p>
-        </form>
+        {formState.status === 'success' ? (
+          <div className="contact-success">
+            <span className="contact-success-icon">
+              <Check size={26} aria-hidden="true" />
+            </span>
+            <h3>Message sent</h3>
+            <p>{formState.message}</p>
+            <button type="button" className="text-link" onClick={handleResetForm}>
+              Send another message
+            </button>
+          </div>
+        ) : (
+          <form className="contact-form" onSubmit={handleSubmit}>
+            <label className="field">
+              Name
+              <span className="field-control">
+                <input
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Your name"
+                  required
+                  onInput={(event) => handleFieldValidity('name', event.target)}
+                />
+                <Check
+                  className={`field-check${validFields.name ? ' is-valid' : ''}`}
+                  size={16}
+                  aria-hidden="true"
+                />
+              </span>
+            </label>
+            <label className="field">
+              Email
+              <span className="field-control">
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  required
+                  onInput={(event) => handleFieldValidity('email', event.target)}
+                />
+                <Check
+                  className={`field-check${validFields.email ? ' is-valid' : ''}`}
+                  size={16}
+                  aria-hidden="true"
+                />
+              </span>
+            </label>
+            <label className="field">
+              Message
+              <span className="field-control">
+                <textarea
+                  name="message"
+                  rows="6"
+                  placeholder="Tell me about the project or opportunity"
+                  required
+                  onInput={(event) => handleFieldValidity('message', event.target)}
+                />
+                <Check
+                  className={`field-check${validFields.message ? ' is-valid' : ''}`}
+                  size={16}
+                  aria-hidden="true"
+                />
+              </span>
+            </label>
+            <button className="button button-primary" type="submit" disabled={formState.status === 'loading'}>
+              <Send size={18} aria-hidden="true" />
+              {formState.status === 'loading' ? 'Sending...' : 'Send message'}
+            </button>
+            <p className={`form-status ${formState.status}`} aria-live="polite">{formState.message}</p>
+          </form>
+        )}
       </section>
 
       <footer className="site-footer">
-        <p>Built with React for a focused, modern CV presentation.</p>
+        <p>
+          Built with React, shipped by a GitHub Actions pipeline that builds and
+          deploys this page straight to{' '}
+          <a href="https://naykitin.github.io/" target="_blank" rel="noreferrer">
+            naykitin.github.io
+          </a>{' '}
+          on every push.
+        </p>
         <div className="footer-actions">
           <a href={cvFile} target="_blank" rel="noreferrer">Open PDF</a>
           <a href="mailto:n.vladyslav@icloud.com">n.vladyslav@icloud.com</a>
           <a href="mailto:vladnik1999@gmail.com">vladnik1999@gmail.com</a>
         </div>
       </footer>
+
+      <a
+        className={`floating-cta${showFloatingCta ? ' is-visible' : ''}`}
+        href="#contact"
+        aria-hidden={!showFloatingCta}
+        tabIndex={showFloatingCta ? 0 : -1}
+      >
+        <Mail size={16} aria-hidden="true" />
+        Start a conversation
+      </a>
+
+      {lightbox && (
+        <div className="lightbox" role="dialog" aria-modal="true" onClick={closeLightbox}>
+          <button type="button" className="lightbox-close" onClick={closeLightbox} aria-label="Close">
+            <X size={22} aria-hidden="true" />
+          </button>
+          {lightbox.images.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="lightbox-nav lightbox-prev"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showPrevImage();
+                }}
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={26} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="lightbox-nav lightbox-next"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showNextImage();
+                }}
+                aria-label="Next image"
+              >
+                <ChevronRight size={26} aria-hidden="true" />
+              </button>
+            </>
+          )}
+          <figure className="lightbox-figure" onClick={(event) => event.stopPropagation()}>
+            <img src={lightbox.images[lightbox.index].src} alt={lightbox.images[lightbox.index].alt} />
+            <figcaption>
+              <span>{lightbox.images[lightbox.index].alt}</span>
+              {lightbox.liveUrl && (
+                <a href={lightbox.liveUrl} target="_blank" rel="noreferrer">
+                  View live
+                  <ArrowUpRight size={14} aria-hidden="true" />
+                </a>
+              )}
+            </figcaption>
+          </figure>
+        </div>
+      )}
+
       <CustomCursor />
     </main>
   );
