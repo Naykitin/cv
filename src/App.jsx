@@ -56,6 +56,7 @@ const expertise = [
   'PHP',
   'CRM Integration',
   'SEO Optimization',
+  'CI/CD Pipelines',
 ];
 
 const experience = [
