@@ -200,25 +200,23 @@ export default function useScrollEffects() {
           )
           .from(
             // Read-order reveal, not a left/right ping-pong: these are
-            // evidence lines, not a spatial layout, so they settle in the
-            // order a reader actually scans them.
+            // evidence lines, not a spatial layout. All claims land together
+            // rather than trickling in one by one.
             project.querySelectorAll('.project-list p'),
             {
               autoAlpha: 0,
               y: 20,
               duration: 0.55,
-              stagger: 0.12,
               clearProps: 'transform',
             },
             '-=0.5'
           )
           .from(
-            // Each claim gets checked off as it lands.
+            // Every claim gets checked off at once.
             project.querySelectorAll('.project-list-check'),
             {
               scale: 0,
               duration: 0.4,
-              stagger: 0.12,
               clearProps: 'transform',
             },
             '<'
