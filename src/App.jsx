@@ -25,8 +25,30 @@ import HeroTerminal from './HeroTerminal';
 import useScrollEffects from './useScrollEffects';
 import './App.css';
 
-const defaultCvFile = '/Nikitin_Vladyslav_CV.pdf';
-const uaCvFile = '/Nikitin_Vladyslav_CV_UA.pdf';
+function LinkedinIcon({ size = 16 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M16 17v-4.5a2.5 2.5 0 0 0-5 0V17" />
+      <path d="M11 12.5V17" />
+      <path d="M8 9.5v.01" />
+      <path d="M8 12.5V17" />
+    </svg>
+  );
+}
+
+const defaultCvFile = '/Vladyslav_Nikitin_CV.pdf';
+const uaCvFile = '/Vladyslav_Nikitin_CV_UA.pdf';
 const defaultPhoneNumber = '+34 672 806 935';
 const uaPhoneNumber = '+380 99 764 4998';
 const defaultPhoneHref = 'https://wa.me/34672806935';
@@ -440,6 +462,10 @@ function App() {
                 <GitBranch size={16} aria-hidden="true" />
                 GitHub
               </a>
+              <a href="https://www.linkedin.com/in/nikitin-vladyslav/" target="_blank" rel="noreferrer">
+                <LinkedinIcon size={16} />
+                LinkedIn
+              </a>
             </div>
           </div>
 
@@ -622,6 +648,10 @@ function App() {
             <a href={phoneHref} target="_blank" rel="noreferrer">
               <Phone size={16} aria-hidden="true" />
               {phoneNumber}
+            </a>
+            <a href="https://www.linkedin.com/in/nikitin-vladyslav/" target="_blank" rel="noreferrer">
+              <LinkedinIcon size={16} />
+              LinkedIn
             </a>
           </div>
         </div>
