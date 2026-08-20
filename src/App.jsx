@@ -25,8 +25,8 @@ import HeroTerminal from './HeroTerminal';
 import useScrollEffects from './useScrollEffects';
 import './App.css';
 
-const defaultCvFile = '/Nikitin_Vladyslav_CV.pdf';
-const uaCvFile = '/Nikitin_Vladyslav_CV_UA.pdf';
+const defaultCvFile = '/Vladyslav_Nikitin_CV.pdf';
+const uaCvFile = '/Vladyslav_Nikitin_CV_UA.pdf';
 const defaultPhoneNumber = '+34 672 806 935';
 const uaPhoneNumber = '+380 99 764 4998';
 const defaultPhoneHref = 'https://wa.me/34672806935';

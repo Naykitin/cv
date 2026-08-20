@@ -27,7 +27,7 @@ test('uses Ukrainian CV download for visitors from Ukraine', async () => {
   await waitFor(() => {
     expect(screen.getByRole('link', { name: /download cv/i })).toHaveAttribute(
       'href',
-      '/Nikitin_Vladyslav_CV_UA.pdf'
+      '/Vladyslav_Nikitin_CV_UA.pdf'
     );
   });
 
