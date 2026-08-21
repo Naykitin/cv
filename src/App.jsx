@@ -637,13 +637,9 @@ function App() {
             endpoint. Prefer email or a call? Those work too:
           </p>
           <div className="contact-options">
-            <a href="mailto:vladnik1999@gmail.com">
+            <a href="mailto:vladyslav.nikitin.mail@gmail.com">
               <Mail size={16} aria-hidden="true" />
-              vladnik1999@gmail.com
-            </a>
-            <a href="mailto:n.vladyslav@icloud.com">
-              <Mail size={16} aria-hidden="true" />
-              n.vladyslav@icloud.com
+              vladyslav.nikitin.mail@gmail.com
             </a>
             <a href={phoneHref} target="_blank" rel="noreferrer">
               <Phone size={16} aria-hidden="true" />
@@ -742,8 +738,7 @@ function App() {
         </p>
         <div className="footer-actions">
           <a href={cvFile} target="_blank" rel="noreferrer">Open PDF</a>
-          <a href="mailto:n.vladyslav@icloud.com">n.vladyslav@icloud.com</a>
-          <a href="mailto:vladnik1999@gmail.com">vladnik1999@gmail.com</a>
+          <a href="mailto:vladyslav.nikitin.mail@gmail.com">vladyslav.nikitin.mail@gmail.com</a>
         </div>
       </footer>
 
