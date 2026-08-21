@@ -690,6 +690,16 @@ a {
   color: var(--gold);
 }
 
+button.text-link {
+  border: none;
+  padding: 0;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
 .project-links {
   display: flex;
   flex-wrap: wrap;
