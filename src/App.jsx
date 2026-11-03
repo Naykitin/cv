@@ -109,6 +109,7 @@ const expertise = [
   'CRM Integration',
   'SEO Optimization',
   'CI/CD Pipelines',
+  'PWA',
 ];
 
 const experience = [
@@ -179,19 +180,36 @@ const projects = [
     label: 'Open-source project',
     title: 'Task Manager — Kanban Board & Time Tracker',
     description:
-      'A free, self-hosted Kanban board with built-in time tracking and timesheet reporting, built for my own task management and running entirely on Cloudflare’s free tier. MIT licensed, so anyone can fork it and adapt it to their own workflow.',
+      'A free, self-hosted Kanban board and installable PWA with built-in time tracking and timesheet reporting, built for my own task management and running entirely on Cloudflare’s free tier. MIT licensed, so anyone can fork it and adapt it to their own workflow.',
     repoUrl: 'https://github.com/Naykitin/task-manager',
     liveUrl: 'https://task-manager.naykitin.workers.dev/',
     highlights: [
       'A single Cloudflare Worker (TypeScript) serves the React app and every /api/* route — no separate backend, $0 hosting.',
       'Cloudflare D1 (SQLite) for storage, PBKDF2 password hashing, and signed JWT sessions in HttpOnly cookies.',
       'Drag-and-drop Kanban board (@dnd-kit) with per-task timers, a timesheet view, and CSV export.',
+      'Installable Progressive Web App (PWA) with service worker caching for offline access and native-like desktop and mobile experience.',
       'MIT licensed and built to be forked — open for anyone to copy and adapt to their own workflow.',
     ],
     images: [
       { src: '/task-manager-board.png', alt: 'Task Manager Kanban board with active timers on each task' },
       { src: '/task-manager-timesheet.png', alt: 'Task Manager timesheet view with hours grouped by task and CSV export' },
     ],
+  },
+  {
+    label: 'Open-source project',
+    title: 'Schengen Visa Calculator — 90/180 & EU Residence Suite',
+    description:
+      'A privacy-first, offline-ready travel calculator and PWA built for tracking Schengen 90/180-day limits and EU tax residency rules (183-day rule and permanent residence absence limits). Features zero-knowledge cloud sync, runs entirely on Cloudflare Pages, and is 100% open-source under MIT.',
+    repoUrl: 'https://github.com/Naykitin/schengen-visa-calculator',
+    liveUrl: 'https://schengen-visa-calculator.pages.dev/',
+    highlights: [
+      'Strict dual-engine calculations: official Schengen Border Code logic (EU Regulation 2016/399) and EU Directive 2003/109/EC permanent residence rules.',
+      'Built with React 19, TypeScript, Vite, and Tailwind CSS v4, featuring month-by-month interactive calendar and smart travel date planning.',
+      'Offline-first Progressive Web App (PWA) powered by IndexedDB with persistent storage and service worker caching.',
+      'Zero-knowledge multi-device cloud sync via Cloudflare Pages Functions and Cloudflare D1 (SQLite) using secure sync keys.',
+      'Responsive multi-device layout with iOS safe-area insets, mobile bottom sheets, foldable screen support, and 5 European languages.',
+    ],
+    images: [],
   },
 ];
 
