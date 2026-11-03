@@ -95,24 +95,81 @@ const heroCapabilities = [
   'GraphQL data layers',
 ];
 
-const expertise = [
-  'React',
-  'Next.js',
-  'TypeScript',
-  'WordPress',
-  'WooCommerce',
-  'Shopify',
-  'GraphQL',
-  'Apollo',
-  'Tailwind CSS',
-  'PHP',
-  'CRM Integration',
-  'SEO Optimization',
-  'CI/CD Pipelines',
-  'PWA',
+const skillCategories = [
+  {
+    category: 'Frontend',
+    skills: [
+      'React 19',
+      'Next.js 16 (App Router)',
+      'TypeScript',
+      'React Native (Expo)',
+      'Tailwind CSS',
+      'SWR',
+      'Vite',
+      'PWA',
+    ],
+  },
+  {
+    category: 'Backend & CMS',
+    skills: [
+      'Fastify',
+      'Strapi 5',
+      'Payload CMS 3',
+      'Django',
+      'DRF',
+      'Asterisk ARI',
+      'PHP',
+      'WordPress',
+      'WooCommerce',
+      'Shopify',
+      'GraphQL',
+      'Apollo',
+      'CRM Integration',
+    ],
+  },
+  {
+    category: 'Databases & Serverless',
+    skills: [
+      'PostgreSQL',
+      'Redis',
+      'Cloudflare D1 (SQLite)',
+      'Cloudflare Workers & Pages',
+    ],
+  },
+  {
+    category: 'Tooling & Architecture',
+    skills: [
+      'Docker',
+      'Cloudflare Tunnels',
+      'Caddy',
+      'WebSockets',
+      'Conventional Commits',
+      'Sentry',
+      'Model Context Protocol (MCP)',
+      'Agentic Workflows',
+      'AI-native CLI tooling',
+      'CI/CD Pipelines',
+      'SEO Optimization',
+    ],
+  },
 ];
 
+const expertise = skillCategories.flatMap((group) => group.skills);
+
 const experience = [
+  {
+    role: 'Lead Full-Stack Software Contractor / Autónomo',
+    company: 'Self-Employed (Client: German Digital Consultancy / Software Studio)',
+    period: 'May 2026 – Present',
+    location: 'Remote, Spain',
+    points: [
+      'Act as primary full-stack engineering contractor for an enterprise client in Germany, architecting and delivering high-performance web applications, specialized portals, and marketplace platforms from scratch.',
+      'Architected and shipped Car Service Platform (auto marketplace): built scalable REST APIs using Django, DRF, PostgreSQL, Redis, and Celery; paired with a Next.js 16 web frontend and React Native (Expo) mobile client. Secured auth with JWT and Cloudflare Turnstile.',
+      'Built Ajax multi-service platform: decoupled frontend (Next.js 16) and headless backend (Strapi 5, SQLite), alongside a real-time telephony microservice (Fastify, TypeScript, Asterisk ARI, Google Cloud TTS, WebSockets).',
+      'Developed Spilka (spilka.law): a production legal service platform powered by Next.js 16, Payload CMS 3, and PostgreSQL 16.',
+      'Accelerated day-to-day SDLC delivery by integrating an AI-native toolchain: orchestrating Claude Code via terminal CLI, custom Model Context Protocol (MCP) servers, and isolated Git worktree workflows.',
+    ],
+  },
   {
     role: 'Full Stack Developer',
     company: 'Foxes',
@@ -178,15 +235,16 @@ const projects = [
   },
   {
     label: 'Open-source project',
-    title: 'Task Manager — Kanban Board & Time Tracker',
+    title: 'NayFlow — AI-Powered Task Manager',
     description:
-      'A free, self-hosted Kanban board and installable PWA with built-in time tracking and timesheet reporting, built for my own task management and running entirely on Cloudflare’s free tier. MIT licensed, so anyone can fork it and adapt it to their own workflow.',
+      'A free, self-hosted Kanban board and installable PWA with built-in time tracking, timesheet reporting, and AI Voice Inbox, running entirely on Cloudflare’s free tier. MIT licensed, so anyone can fork it and adapt it to their own workflow.',
     repoUrl: 'https://github.com/Naykitin/task-manager',
     liveUrl: 'https://task-manager.naykitin.workers.dev/',
     highlights: [
       'A single Cloudflare Worker (TypeScript) serves the React app and every /api/* route — no separate backend, $0 hosting.',
       'Cloudflare D1 (SQLite) for storage, PBKDF2 password hashing, and signed JWT sessions in HttpOnly cookies.',
       'Drag-and-drop Kanban board (@dnd-kit) with per-task timers, a timesheet view, and CSV export.',
+      'Voice Inbox with Claude API for turning dictated and free-form notes into structured tasks.',
       'Installable Progressive Web App (PWA) with service worker caching for offline access and native-like desktop and mobile experience.',
       'MIT licensed and built to be forked — open for anyone to copy and adapt to their own workflow.',
     ],
@@ -197,16 +255,15 @@ const projects = [
   },
   {
     label: 'Open-source project',
-    title: 'Schengen Visa Calculator — 90/180 & EU Residence Suite',
+    title: 'NayKit — Schengen & EU Residence Suite',
     description:
-      'A privacy-first, offline-ready travel calculator and PWA built for tracking Schengen 90/180-day limits and EU tax residency rules (183-day rule and permanent residence absence limits). Features zero-knowledge cloud sync, runs entirely on Cloudflare Pages, and is 100% open-source under MIT.',
+      'An open-source, privacy-first, and local-first Progressive Web App implementing a dual-engine compliance calculator for Schengen stays and EU tax residency. Stack: React 19, TypeScript, Vite, Tailwind CSS v4, Cloudflare Pages & D1, PWA, Vitest.',
     repoUrl: 'https://github.com/Naykitin/schengen-visa-calculator',
     liveUrl: 'https://schengen-visa-calculator.pages.dev/',
     highlights: [
-      'Strict dual-engine calculations: official Schengen Border Code logic (EU Regulation 2016/399) and EU Directive 2003/109/EC permanent residence rules.',
-      'Built with React 19, TypeScript, Vite, and Tailwind CSS v4, featuring month-by-month interactive calendar and smart travel date planning.',
-      'Offline-first Progressive Web App (PWA) powered by IndexedDB with persistent storage and service worker caching.',
-      'Zero-knowledge multi-device cloud sync via Cloudflare Pages Functions and Cloudflare D1 (SQLite) using secure sync keys.',
+      'Engineered a privacy-first, local-first Progressive Web App implementing a dual-engine compliance calculator: Schengen 90/180-day sliding window and EU 183-day tax residency tracking.',
+      'Built zero-knowledge multi-device pairing over serverless Cloudflare D1 using high-entropy sync keys, combined with 100% offline-ready IndexedDB persistence and Service Worker caching.',
+      'Strict compliance with official Schengen Border Code calculation logic (EU Regulation 2016/399) and EU Directive 2003/109/EC permanent residence rules.',
       'Responsive multi-device layout with iOS safe-area insets, mobile bottom sheets, foldable screen support, and 5 European languages.',
     ],
     images: [],
@@ -555,9 +612,16 @@ function App() {
             </article>
           ))}
         </div>
-        <div className="skill-cloud" aria-label="Technical skills">
-          {expertise.map((skill) => (
-            <span key={skill}>{skill}</span>
+        <div className="skills-categorized" aria-label="Technical skills by category">
+          {skillCategories.map(({ category, skills }) => (
+            <div className="skill-category-group" key={category}>
+              <h3 className="skill-category-title">{category}</h3>
+              <div className="skill-cloud">
+                {skills.map((skill) => (
+                  <span key={skill}>{skill}</span>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </section>

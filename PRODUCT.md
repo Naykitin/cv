@@ -37,12 +37,12 @@ A personal CV / portfolio site whose success is measured in outbound contact: a 
 
 - Name: Vladyslav Nikitin. Title used throughout: "Full Stack Developer."
 - Existing visual identity is incumbent and should be preserved as-is unless a redesign is explicitly requested: dark paper/ink palette with gold/red/green/blue accents, monospace terminal accents, particle-field background, custom cursor.
-- Listed skill/expertise tags (React, Next.js, TypeScript, WordPress, WooCommerce, Shopify, GraphQL, Apollo, Tailwind CSS, PHP, CRM Integration, SEO Optimization, CI/CD Pipelines, PWA) are confirmed factual claims, not placeholders — future edits must keep them true rather than aspirational.
+- Listed skill/expertise tags (React 19, Next.js 16, TypeScript, React Native, Fastify, Strapi 5, Payload CMS 3, Django, DRF, Redis, D1, Docker, MCP, etc.) are confirmed factual claims, not placeholders — future edits must keep them true rather than aspirational.
 
 ## Evidence on Hand
 
-- Real work history with named employers and dates (Foxes, NextG, Remote Helpers, Aweb Systems), each with concrete responsibility bullets — see `experience` in `src/App.jsx`.
-- Three real project case studies: `github.com/Naykitin/frontend-next` (repo only), `github.com/Naykitin/task-manager` with a live demo at `task-manager.naykitin.workers.dev` (backed by real screenshots in `public/`), and `github.com/Naykitin/schengen-visa-calculator` with a live demo at `schengen-visa-calculator.pages.dev`.
+- Real work history with named employers/clients and dates (Self-Employed / German Digital Consultancy, Foxes, NextG, Remote Helpers, Aweb Systems), each with concrete responsibility bullets — see `experience` in `src/App.jsx`.
+- Three real project case studies: `github.com/Naykitin/frontend-next` (repo only), `github.com/Naykitin/task-manager` (NayFlow) with a live demo at `task-manager.naykitin.workers.dev` (backed by real screenshots in `public/`), and `github.com/Naykitin/schengen-visa-calculator` (NayKit) with a live demo at `schengen-visa-calculator.pages.dev`.
 - Two real downloadable CV PDFs (EN/UA) in `public/`.
 - No testimonials, client logos, or case-study metrics exist anywhere in the codebase — do not fabricate them.
 
