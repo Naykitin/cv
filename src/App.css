@@ -750,6 +750,21 @@ button.text-link {
   margin-top: 24px;
 }
 
+.project-status-note {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  margin-top: 24px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.04);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
+}
+
 .project-media {
   grid-column: 1 / -1;
   display: grid;
@@ -1225,93 +1240,1192 @@ button.text-link {
 
 .laptop-scrub {
   position: relative;
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100vh;
   overflow: hidden;
 }
 
-.laptop-scrub-canvas {
+.laptop-rig-container {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  /* Studio camera perspective tuned for uniform scale3d(s, s, s) dolly zoom,
+     keeping both rounded front corners framed and preserving 3D parallax. */
+  perspective: 2200px;
+  perspective-origin: 50% 54%;
+}
+
+.laptop-camera-dolly {
+  /* Native 16:10-ish MacBook Pro display size at zoom end (scale = 1),
+     ensuring nested HTML is rasterized at full crisp resolution. */
+  --lid-w: clamp(1040px, min(95vw, calc(92vh * 1.56)), 1580px);
+  --lid-h: calc(var(--lid-w) / 1.56);
+  --lid-depth: 8px;
+  --base-depth: 14px;
+  position: relative;
+  width: var(--lid-w);
+  height: var(--lid-h);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* =========================================================================
+   3D LID HOUSING (Multi-layered aluminum shell + multi-bordered 3D bezel)
+   ========================================================================= */
+.laptop-lid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Calibrates local Z extrusion relative to --lid-w so --lid-depth projects at
+   true MacBook Pro display-shell thickness across uniform scale3d() dolly zoom. */
+.lid-volume {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
+  transform-style: preserve-3d;
+  transform: scaleZ(1.9);
+  pointer-events: none;
 }
 
-.laptop-scrub-loader {
+/* Outer anodized aluminum lid shell (z = -8px) catching studio overhead light */
+.laptop-lid-back {
   position: absolute;
-  left: 50%;
-  bottom: 12%;
-  width: min(220px, 40vw);
-  height: 2px;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.12);
-  overflow: hidden;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid rgba(255, 255, 255, 0.36);
+  border-radius: 26px 26px 12px 12px;
+  background:
+    radial-gradient(ellipse 74% 52% at 50% 18%, rgba(255, 255, 255, 0.24), transparent 64%),
+    linear-gradient(125deg, rgba(255, 255, 255, 0.1) 0%, transparent 40%, rgba(0, 0, 0, 0.28) 100%),
+    linear-gradient(180deg, #4f5158 0%, #63666e 50%, #767982 94%, #8b8e97 100%);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.46),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.55);
+  transform: translateZ(calc(var(--lid-depth) * -1)) rotateX(180deg);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  pointer-events: none;
 }
 
-.laptop-scrub-loader span {
-  display: block;
-  height: 100%;
-  width: 100%;
-  transform-origin: left center;
-  transform: scaleX(var(--p, 0));
-  background: rgba(255, 255, 255, 0.7);
-  transition: transform 0.2s ease;
+/* Multi-layered 3D lid contour slices prevent thinness when opened at an angle */
+.laptop-lid-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 26px 26px 12px 12px;
+  pointer-events: none;
 }
 
-.laptop-scrub-screen {
-  /* Virtual laptop display: JS moves/scales this to track the rendered
-     screen. Size must match BASE_W/BASE_H in LaptopScrub.jsx. */
+.laptop-lid-layer.is-deep {
+  inset: 0.5px;
+  border: 1.5px solid #52545b;
+  background: #25262a;
+  transform: translateZ(-6px);
+}
+
+.laptop-lid-layer.is-mid {
+  border: 1.5px solid #3e4046;
+  background: #1c1d20;
+  transform: translateZ(-4px);
+}
+
+.laptop-lid-layer.is-shallow {
+  border: 1.5px solid #2e2f34;
+  background: #141518;
+  transform: translateZ(-2px);
+}
+
+.laptop-lid-emblem {
+  width: 62px;
+  height: 62px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(30, 31, 35, 0.78) 52%, rgba(8, 8, 10, 0.92) 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.38),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+  transform: rotate(45deg);
+}
+
+/* Multi-bordered 3D aluminum outer lip + raised rubber gasket wrapping screen */
+.laptop-lid-rim {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: 26px 26px 12px 12px;
+  border: 2.5px solid #5d6068;
+  border-top-color: #858892;
+  border-bottom-color: #34353b;
+  box-shadow:
+    inset 0 0 0 2px #0f1012,
+    inset 0 0 0 3.5px rgba(255, 255, 255, 0.16),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.78);
+  transform: translateZ(1.2px);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  pointer-events: none;
+}
+
+/* 4 extruded metallic walls + 3-facet rounded corner buffers of the lid */
+.lid-edge {
+  position: absolute;
+  pointer-events: none;
+}
+
+.lid-edge-top {
+  top: 0;
+  right: 21px;
+  left: 21px;
+  height: var(--lid-depth);
+  background: linear-gradient(
+    180deg,
+    #0e0e10 0%,
+    #25262a 24%,
+    #45474e 68%,
+    #787b84 100%
+  );
+  border-top: 1px solid #060607;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.42);
+  transform-origin: 50% 0%;
+  transform: rotateX(-90deg);
+}
+
+.lid-edge-bottom {
+  right: 12px;
+  bottom: 0;
+  left: 12px;
+  height: var(--lid-depth);
+  background: linear-gradient(90deg, #121214, #28292d 50%, #121214);
+  transform-origin: 50% 100%;
+  transform: rotateX(90deg);
+}
+
+.lid-edge-left {
+  top: 24px;
+  bottom: 12px;
+  left: 0;
+  width: var(--lid-depth);
+  background: linear-gradient(
+    90deg,
+    #585a62 0%,
+    #36373c 38%,
+    #222327 75%,
+    #4b4d54 100%
+  );
+  transform-origin: 0% 50%;
+  transform: rotateY(90deg);
+}
+
+.lid-edge-right {
+  top: 24px;
+  right: 0;
+  bottom: 12px;
+  width: var(--lid-depth);
+  background: linear-gradient(
+    270deg,
+    #585a62 0%,
+    #36373c 38%,
+    #222327 75%,
+    #4b4d54 100%
+  );
+  transform-origin: 100% 50%;
+  transform: rotateY(-90deg);
+}
+
+.lid-corner {
   position: absolute;
   top: 0;
+  width: 26px;
+  height: 26px;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.lid-corner-tl {
   left: 0;
+}
+
+.lid-corner-tr {
+  right: 0;
+}
+
+.lid-corner::before,
+.lid-corner::after,
+.lid-corner > span {
+  position: absolute;
+  width: 14px;
+  height: var(--lid-depth);
+  background: linear-gradient(
+    180deg,
+    #0e0e10 0%,
+    #25262a 24%,
+    #45474e 68%,
+    #787b84 100%
+  );
+  border-top: 1px solid #060607;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.38);
+  transform-origin: 50% 0%;
+  content: '';
+}
+
+.lid-corner-tl::before {
+  top: 2.25px;
+  left: 15.42px;
+  margin-left: -7px;
+  transform: rotateZ(156deg) rotateX(-90deg);
+}
+
+.lid-corner-tl > span {
+  top: 8.27px;
+  left: 6.98px;
+  margin-left: -7px;
+  transform: rotateZ(133deg) rotateX(-90deg);
+}
+
+.lid-corner-tl::after {
+  top: 17.11px;
+  left: 1.57px;
+  margin-left: -7px;
+  transform: rotateZ(110deg) rotateX(-90deg);
+}
+
+.lid-corner-tr::before {
+  top: 2.25px;
+  right: 15.42px;
+  margin-right: -7px;
+  transform: rotateZ(-156deg) rotateX(-90deg);
+}
+
+.lid-corner-tr > span {
+  top: 8.27px;
+  right: 6.98px;
+  margin-right: -7px;
+  transform: rotateZ(-133deg) rotateX(-90deg);
+}
+
+.lid-corner-tr::after {
+  top: 17.11px;
+  right: 1.57px;
+  margin-right: -7px;
+  transform: rotateZ(-110deg) rotateX(-90deg);
+}
+
+.laptop-bezel {
+  position: relative;
   display: grid;
-  width: 1000px;
-  height: 680px;
-  transform-origin: 0 0;
   place-items: center;
-  opacity: 0;
+  width: 100%;
+  height: 100%;
+  padding: clamp(24px, 2.8vh, 36px) clamp(24px, 2.8vw, 44px) clamp(28px, 3.2vh, 40px);
+  border: 2.5px solid #42444b;
+  border-radius: 26px 26px 12px 12px;
+  background:
+    radial-gradient(circle at 16% 14%, rgba(229, 106, 79, 0.15), transparent 46%),
+    radial-gradient(circle at 86% 12%, rgba(67, 171, 141, 0.13), transparent 42%),
+    linear-gradient(155deg, #181410 0%, #100d0a 52%, #17130f 100%);
+  box-shadow:
+    inset 0 0 0 11px #060607,
+    inset 0 0 0 12.5px rgba(244, 238, 227, 0.13),
+    0 36px 90px rgba(0, 0, 0, 0.76);
+  overflow: hidden;
+  transform: translateZ(0.5px);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.laptop-camera-notch {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 146px;
+  height: 22px;
+  border-radius: 0 0 11px 11px;
+  background: linear-gradient(180deg, #050506 0%, #0b0b0d 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-top: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.laptop-camera-sensor {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #17151a;
+  box-shadow: inset 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.laptop-camera-lens {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 32%, #4f86a6 0%, #1b2c3b 45%, #07090c 78%);
+  box-shadow:
+    0 0 0 1.5px #151412,
+    inset 0 1px 1px rgba(255, 255, 255, 0.35);
+}
+
+.laptop-camera-led {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(67, 171, 141, 0.65);
+  box-shadow: 0 0 5px rgba(67, 171, 141, 0.55);
+}
+
+.laptop-screen-wake {
+  position: absolute;
+  inset: 11px;
+  z-index: 2;
+  border-radius: 15px 15px 4px 4px;
+  background: #060607;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.laptop-screen-glare {
+  position: absolute;
+  inset: -25%;
+  z-index: 2;
+  background: linear-gradient(
+    112deg,
+    transparent 34%,
+    rgba(255, 250, 242, 0.1) 46%,
+    rgba(255, 205, 89, 0.06) 50%,
+    transparent 58%
+  );
+  pointer-events: none;
   will-change: transform, opacity;
 }
 
-.laptop-scrub-screen .hero-showcase {
-  width: min(640px, 66%);
-}
-
-/* Scrub finished: drop the compositor hints and the 3D tilt so the window
-   re-rasterizes at its final scale — without this the text keeps the
-   upscaled (blurry) raster from the animation. */
-.laptop-scrub.is-settled .laptop-scrub-screen {
-  will-change: auto;
-}
-
-.laptop-scrub.is-settled .hero-showcase {
+.laptop-bezel .hero-showcase {
+  z-index: 1;
+  width: min(920px, 90%);
+  background:
+    linear-gradient(145deg, rgba(29, 25, 21, 0.98), rgba(22, 19, 16, 0.94)),
+    linear-gradient(135deg, rgba(229, 106, 79, 0.1), rgba(123, 162, 216, 0.08));
+  backdrop-filter: none;
   transform: none;
+  transform-style: flat;
+  transition: box-shadow 220ms ease;
+}
+
+.laptop-bezel .showcase-focus {
+  min-height: clamp(180px, 23vh, 240px);
+}
+
+/* =========================================================================
+   3D VOLUMETRIC UNIBODY BASE (14px multi-face beveled aluminum chassis)
+   ========================================================================= */
+.laptop-base {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 0%;
+  transform-style: preserve-3d;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Calibrates local Z extrusion relative to --lid-w (~1480px) so --base-depth: 14px
+   projects with substantial unibody slab volume across uniform scale3d() zoom. */
+.base-volume {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: scaleZ(2.4);
+}
+
+/* Overlapping 3D contour & chamfer layers solidify the rounded unibody volume */
+.base-layer {
+  position: absolute;
+  pointer-events: none;
+}
+
+.base-layer-bevel-top {
+  inset: 0;
+  border: 1.5px solid #686a71;
+  border-radius: 12px 12px 26px 26px;
+  background: #2f3035;
+  transform: translateZ(-1.4px);
+}
+
+.base-layer-upper {
+  inset: 0;
+  border: 1.5px solid #35363b;
+  border-radius: 12px 12px 26px 26px;
+  background: #232428;
+  transform: translateZ(-4px);
+}
+
+.base-layer-mid {
+  inset: 0;
+  border: 1.5px solid #25262a;
+  border-radius: 12px 12px 26px 26px;
+  background: #1c1c1f;
+  transform: translateZ(-7px);
+}
+
+.base-layer-lower {
+  inset: 0.5px;
+  border: 1.5px solid #19191b;
+  border-radius: 11.5px 11.5px 25.5px 25.5px;
+  background: #151517;
+  transform: translateZ(-10px);
+}
+
+/* Stepped bottom-edge bevels curving smoothly inward to .base-face-bottom */
+.base-layer-chamfer-1 {
+  inset: 2px;
+  border: 1.5px solid #111113;
+  border-radius: 11px 11px 24px 24px;
+  background: #0f0f11;
+  transform: translateZ(-12px);
+}
+
+.base-layer-chamfer-2 {
+  inset: 3.5px;
+  border: 1px solid #0a0a0b;
+  border-radius: 10.5px 10.5px 22.5px 22.5px;
+  background: #0b0b0c;
+  transform: translateZ(-13.2px);
+}
+
+.base-face {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Top unibody deck face (z = 0): brushed aluminum catching overhead light */
+.base-face-top {
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 4.6% 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.32);
+  border-bottom-color: #82848c;
+  border-radius: 12px 12px 26px 26px;
+  background:
+    radial-gradient(ellipse 86% 36% at 50% 0%, rgba(255, 248, 236, 0.14), transparent 64%),
+    linear-gradient(
+      90deg,
+      #3d3e44 0%,
+      #55575e 9%,
+      #484a50 26%,
+      #44464c 50%,
+      #484a50 74%,
+      #55575e 91%,
+      #3d3e44 100%
+    ),
+    linear-gradient(180deg, #393a40 0%, #4c4e55 58%, #61636b 95%, #787a83 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    inset 0 -2px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -10px 22px rgba(0, 0, 0, 0.24);
+  transform: translateZ(0px);
+}
+
+/* Bottom-most 3D face (translateZ(-14px)): recessed underbody + drop-shadow + feet */
+.base-face-bottom {
+  inset: 5px;
+  border-radius: 10px 10px 21px 21px;
+  transform: translateZ(-14px);
+  transform-style: preserve-3d;
+}
+
+/* Leaf depth plate receives filter: drop-shadow(...) without flattening 3D siblings */
+.base-bottom-plate {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid #050506;
+  background: linear-gradient(180deg, #111113 0%, #0a0a0b 55%, #060607 100%);
+  filter:
+    drop-shadow(0 24px 34px rgba(0, 0, 0, 0.96))
+    drop-shadow(0 8px 14px rgba(0, 0, 0, 0.9));
+}
+
+/* Cylindrical rubber feet on the bottom-most 3D face (translateZ(-14px)).
+   Pad + rim are separate 2D leaf elements so opacity fades never flatten 3D. */
+.base-foot {
+  position: absolute;
+  width: 6.8%;
+  height: 20px;
+  transform: translateZ(-3.2px);
+  transform-style: preserve-3d;
+}
+
+.base-foot-pad {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, #191a1e 0%, #0b0b0d 70%, #040405 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Extruded vertical rubber rim so feet visibly peek below the tilted chassis */
+.base-foot-rim {
+  position: absolute;
+  top: 62%;
+  right: 4%;
+  left: 4%;
+  height: 3.2px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(
+    90deg,
+    #060607 0%,
+    #25262b 36%,
+    #18191c 66%,
+    #060607 100%
+  );
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.95);
+  transform-origin: 50% 0%;
+  transform: translateZ(3.2px) rotateX(-90deg);
+}
+
+.base-foot-fl {
+  bottom: 2px;
+  left: 8.8%;
+}
+
+.base-foot-fr {
+  right: 8.8%;
+  bottom: 2px;
+}
+
+.base-foot-bl {
+  top: 16px;
+  left: 8.8%;
+}
+
+.base-foot-br {
+  top: 16px;
+  right: 8.8%;
+}
+
+/* Front vertical 3D face (14px): specular top bevel (#555 -> #1e1e1e -> #0c0c0c) */
+.base-face-front {
+  top: 100%;
+  right: 21px;
+  left: 21px;
+  display: flex;
+  justify-content: center;
+  height: var(--base-depth);
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.05) 26%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.05) 74%,
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      #72747b 0%,
+      #555558 13%,
+      #2c2d31 30%,
+      #1e1e1e 62%,
+      #111113 85%,
+      #0c0c0c 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.88);
+  transform-origin: 50% 0%;
+  transform: rotateX(-90deg);
+}
+
+/* Centered display-opening thumb indentation carved into .base-face-front */
+.base-indent {
+  position: relative;
+  width: 14.5%;
+  height: 7.5px;
+  border-radius: 0 0 8px 8px;
+  background: linear-gradient(
+    180deg,
+    #080809 0%,
+    #141518 58%,
+    #28292e 90%,
+    #43454c 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top: 1px solid #09090a;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.96),
+    0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* Rear vertical closure face (14px) */
+.base-face-back {
+  top: 0;
+  right: 12px;
+  left: 12px;
+  height: var(--base-depth);
+  background: linear-gradient(
+    180deg,
+    #48494e 0%,
+    #222326 35%,
+    #141416 75%,
+    #0b0b0c 100%
+  );
+  transform-origin: 50% 0%;
+  transform: rotateX(-90deg);
+}
+
+/* Left & right 14px 3D side faces with machined IO ports and side vent slits */
+.base-face-left {
+  top: 12px;
+  bottom: 24px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--base-depth);
+  padding: 42px 0 64px;
+  background: linear-gradient(
+    90deg,
+    #525359 0%,
+    #3d3e43 13%,
+    #212226 32%,
+    #161618 64%,
+    #09090a 100%
+  );
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.24);
+  transform-origin: 0% 50%;
+  transform: rotateY(90deg);
+}
+
+.base-face-right {
+  top: 12px;
+  right: 0;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--base-depth);
+  padding: 46px 0 64px;
+  background: linear-gradient(
+    270deg,
+    #525359 0%,
+    #3d3e43 13%,
+    #212226 32%,
+    #161618 64%,
+    #09090a 100%
+  );
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.24);
+  transform-origin: 100% 50%;
+  transform: rotateY(-90deg);
+}
+
+.base-io-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.base-port {
+  display: block;
+  width: 5px;
+  border-radius: 3px;
+  background: #050506;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.96),
+    0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.base-port-magsafe {
+  height: 22px;
+}
+
+.base-port-usbc {
+  height: 14px;
+}
+
+.base-port-hdmi {
+  height: 20px;
+}
+
+.base-port-sdxc {
+  width: 3px;
+  height: 30px;
+}
+
+.base-port-jack {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+/* Machined side vent grille slit tucked along the lower side bevel */
+.base-vent {
+  display: block;
+  width: 3px;
+  height: 22%;
+  min-height: 84px;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      #040405 0px,
+      #040405 5px,
+      #252629 5px,
+      #252629 7px
+    );
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.95),
+    0 0 0 0.8px rgba(255, 255, 255, 0.1);
+}
+
+.base-face-left .base-vent {
+  transform: translateX(3px);
+}
+
+.base-face-right .base-vent {
+  transform: translateX(-3px);
+}
+
+/* 3D cylindrical corner buffer/filler facets bridging front and side faces */
+.base-corner {
+  position: absolute;
+  pointer-events: none;
+}
+
+.base-corner-fl,
+.base-corner-fr {
+  bottom: 0;
+  width: 26px;
+  height: 26px;
+  transform-style: preserve-3d;
+}
+
+.base-corner-fl {
+  left: 0;
+}
+
+.base-corner-fr {
+  right: 0;
+}
+
+.base-corner-facet {
+  position: absolute;
+  width: 14px;
+  height: var(--base-depth);
+  background: linear-gradient(
+    180deg,
+    #72747b 0%,
+    #555558 13%,
+    #2c2d31 30%,
+    #1e1e1e 62%,
+    #111113 85%,
+    #0c0c0c 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.88);
+  transform-origin: 50% 0%;
+}
+
+.base-corner-fl .base-corner-facet.is-1 {
+  top: 23.75px;
+  left: 15.42px;
+  margin-left: -7px;
+  transform: rotateZ(24deg) rotateX(-90deg);
+}
+
+.base-corner-fl .base-corner-facet.is-2 {
+  top: 17.73px;
+  left: 6.98px;
+  margin-left: -7px;
+  background: linear-gradient(
+    180deg,
+    #6d6f76 0%,
+    #515257 13%,
+    #292a2e 30%,
+    #1b1b1d 62%,
+    #0b0b0c 100%
+  );
+  transform: rotateZ(47deg) rotateX(-90deg);
+}
+
+.base-corner-fl .base-corner-facet.is-3 {
+  top: 8.89px;
+  left: 1.57px;
+  margin-left: -7px;
+  border-bottom-left-radius: 5px;
+  background: linear-gradient(
+    180deg,
+    #585960 0%,
+    #414247 13%,
+    #222327 30%,
+    #151517 62%,
+    #09090a 100%
+  );
+  transform: rotateZ(70deg) rotateX(-90deg);
+}
+
+.base-corner-fr .base-corner-facet.is-1 {
+  top: 23.75px;
+  right: 15.42px;
+  margin-right: -7px;
+  transform: rotateZ(-24deg) rotateX(-90deg);
+}
+
+.base-corner-fr .base-corner-facet.is-2 {
+  top: 17.73px;
+  right: 6.98px;
+  margin-right: -7px;
+  background: linear-gradient(
+    180deg,
+    #6d6f76 0%,
+    #515257 13%,
+    #292a2e 30%,
+    #1b1b1d 62%,
+    #0b0b0c 100%
+  );
+  transform: rotateZ(-47deg) rotateX(-90deg);
+}
+
+.base-corner-fr .base-corner-facet.is-3 {
+  top: 8.89px;
+  right: 1.57px;
+  margin-right: -7px;
+  border-bottom-right-radius: 5px;
+  background: linear-gradient(
+    180deg,
+    #585960 0%,
+    #414247 13%,
+    #222327 30%,
+    #151517 62%,
+    #09090a 100%
+  );
+  transform: rotateZ(-70deg) rotateX(-90deg);
+}
+
+.base-corner-bl,
+.base-corner-br {
+  top: 3.5px;
+  width: 12px;
+  height: var(--base-depth);
+  background: linear-gradient(
+    180deg,
+    #4c4d52 0%,
+    #252629 34%,
+    #151517 72%,
+    #0b0b0c 100%
+  );
+  transform-origin: 50% 0%;
+}
+
+.base-corner-bl {
+  left: 3.5px;
+  margin-left: -6px;
+  transform: rotateZ(135deg) rotateX(-90deg);
+}
+
+.base-corner-br {
+  right: 3.5px;
+  margin-right: -6px;
+  transform: rotateZ(-135deg) rotateX(-90deg);
+}
+
+/* Warm ambient screen light bleeding down from the open display onto the deck */
+.laptop-screen-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      ellipse 76% 44% at 50% 0%,
+      rgba(255, 224, 150, 0.22) 0%,
+      rgba(229, 106, 79, 0.11) 36%,
+      rgba(67, 171, 141, 0.06) 60%,
+      transparent 78%
+    );
+  pointer-events: none;
+}
+
+.laptop-hinge {
+  position: relative;
+  z-index: 1;
+  width: 80%;
+  height: 14px;
+  margin-top: -16px;
+  border-radius: 0 0 7px 7px;
+  background: linear-gradient(
+    180deg,
+    #060607 0%,
+    #232428 48%,
+    #111113 82%,
+    #070708 100%
+  );
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Speaker grilles + CNC-milled recessed Magic Keyboard well */
+.laptop-deck {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 38px;
+  gap: 14px;
+  align-items: stretch;
+  width: 100%;
+  height: 58%;
+}
+
+.laptop-speaker {
+  margin: 6px 0;
+  border-radius: 8px;
+  background-image:
+    radial-gradient(rgba(7, 7, 8, 0.92) 1.1px, transparent 1.2px),
+    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1.2px);
+  background-position: 0 0, 2px 2px;
+  background-size: 4px 4px;
+  box-shadow: inset 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.laptop-keyboard-well {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 10px 10px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #09090a 0%, #0e0e10 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 4px 10px rgba(0, 0, 0, 0.95),
+    inset 0 0 0 2px #050506,
+    0 1.5px 0 rgba(255, 255, 255, 0.22);
+}
+
+.laptop-key-row {
+  display: flex;
+  flex: 1 1 0%;
+  gap: 5px;
+  min-height: 0;
+}
+
+.laptop-key-row.is-compact {
+  flex: 0.76 1 0%;
+}
+
+.laptop-key {
+  position: relative;
+  flex: var(--w, 1) 1 0%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 5px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(180deg, #222326 0%, #161719 65%, #111113 100%);
+  color: rgba(244, 238, 227, 0.5);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  user-select: none;
+  box-shadow:
+    0 2px 0 #040405,
+    0 2.5px 4px rgba(255, 248, 232, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.laptop-key.is-left {
+  justify-content: flex-start;
+  padding-left: 7px;
+  font-size: 0.5rem;
+}
+
+.laptop-key.is-right {
+  justify-content: flex-end;
+  padding-right: 7px;
+  font-size: 0.5rem;
+}
+
+.laptop-key.is-space {
+  background: linear-gradient(180deg, #242528 0%, #17181a 70%, #121214 100%);
+}
+
+/* Tactile F & J homing bumps */
+.laptop-key.is-homing::after {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 8px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: rgba(244, 238, 227, 0.36);
+  transform: translateX(-50%);
+  content: '';
+}
+
+.laptop-caps-dot {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(67, 171, 141, 0.55);
+  box-shadow: 0 0 4px rgba(67, 171, 141, 0.5);
+}
+
+.laptop-key.is-touch-id {
+  padding: 0;
+}
+
+.laptop-touch-id-ring {
+  width: 56%;
+  aspect-ratio: 1;
+  max-height: 74%;
+  border-radius: 50%;
+  border: 1.2px solid rgba(255, 255, 255, 0.25);
+  background: radial-gradient(circle at 35% 35%, #18191b, #09090a);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+/* Inverted-T half-height arrow cluster */
+.laptop-key.is-half-bottom {
+  align-self: flex-end;
+  height: calc(50% - 1.5px);
+  font-size: 0.44rem;
+}
+
+.laptop-key-split {
+  flex: var(--w, 1) 1 0%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.laptop-key.is-half {
+  flex: 1 1 0%;
+  border-radius: 4px;
+  font-size: 0.4rem;
+}
+
+/* Defined Force Touch glass trackpad with machined diamond-cut inset */
+.laptop-trackpad {
+  position: relative;
+  z-index: 1;
+  width: 39%;
+  height: 31%;
+  border-radius: 13px;
+  border: 1px solid rgba(0, 0, 0, 0.65);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.1), transparent 70%),
+    linear-gradient(180deg, #3e3f45 0%, #4b4d54 55%, #55575f 100%);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.48),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.26);
+}
+
+/* Multi-stop radial gradient grounds the full rig on the dark stage */
+.laptop-desk-shadow {
+  position: absolute;
+  top: 94%;
+  right: 6%;
+  left: 6%;
+  height: 38%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.48) 46%,
+    transparent 74%
+  );
+  transform: translate3d(0, -14%, -56px);
+  pointer-events: none;
+  will-change: transform, opacity;
 }
 
 @media (max-width: 980px), (prefers-reduced-motion: reduce) {
-  /* No scrub animation: show the showcase card as a normal section. */
+  /* No 3D scrub animation: render the showcase card cleanly in normal flow. */
   .laptop-scrub {
+    display: block;
     height: auto;
     padding: 24px clamp(20px, 6vw, 48px) 48px;
+    overflow: visible;
   }
 
-  .laptop-scrub-canvas,
-  .laptop-scrub-loader {
+  .laptop-rig-container,
+  .laptop-camera-dolly,
+  .laptop-lid {
+    position: static;
+    display: block;
+    width: auto;
+    height: auto;
+    perspective: none;
+    transform: none;
+    transform-style: flat;
+    will-change: auto;
+  }
+
+  .lid-volume,
+  .laptop-lid-rim,
+  .laptop-camera-notch,
+  .laptop-screen-wake,
+  .laptop-screen-glare,
+  .laptop-base,
+  .laptop-desk-shadow {
     display: none;
   }
 
-  .laptop-scrub-screen {
+  .laptop-bezel {
     position: static;
+    display: block;
     width: auto;
     height: auto;
-    opacity: 1;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    overflow: visible;
     transform: none;
   }
 
-  .laptop-scrub-screen .hero-showcase {
-    width: min(640px, 100%);
+  .laptop-bezel .hero-showcase {
+    width: min(680px, 100%);
     margin: 0 auto;
+  }
+
+  .laptop-bezel .showcase-focus {
+    min-height: 250px;
   }
 }
 

@@ -30,18 +30,18 @@ A personal CV / portfolio site whose success is measured in outbound contact: a 
 
 - Static single-page React (Vite) app; no server-side rendering, no user accounts, no CMS backend for this site itself.
 - Content (experience, projects, skills) lives in JS data arrays in `src/App.jsx`, not in a CMS — updates are code changes, not content-editor changes.
-- Three project case studies are linked out to (not embedded): a headless WordPress/Next.js platform (in progress, repo-only, no live demo), Task Manager (an MIT-licensed Cloudflare-hosted PWA Kanban/time-tracker), and Schengen Visa Calculator (a privacy-first PWA travel & EU residence calculator on Cloudflare Pages).
+- Three project case studies are linked out to (not embedded): a headless WordPress/Next.js platform (in progress, repo-only, no live demo), Task Manager (NayFlow, an MIT-licensed Cloudflare-hosted PWA Kanban/time-tracker), and Schengen Visa Calculator (NayKit, a privacy-first PWA travel & EU residence calculator on Cloudflare Pages). Additional production systems like the Automated Voice Dialing System and Cal.diy are featured as client deliverables under the German Digital Consultancy contract.
 - Bilingual by geolocation only (EN default / UA variant) — content is not otherwise internationalized.
 
 ## Brand Commitments
 
 - Name: Vladyslav Nikitin. Title used throughout: "Full Stack Developer."
 - Existing visual identity is incumbent and should be preserved as-is unless a redesign is explicitly requested: dark paper/ink palette with gold/red/green/blue accents, monospace terminal accents, particle-field background, custom cursor.
-- Listed skill/expertise tags (React 19, Next.js 16, TypeScript, React Native, Fastify, Strapi 5, Payload CMS 3, Django, DRF, Redis, D1, Docker, MCP, etc.) are confirmed factual claims, not placeholders — future edits must keep them true rather than aspirational.
+- Listed skill/expertise tags (React 19, Next.js 16, TypeScript, React Native, Fastify, Strapi 5, Payload CMS 3, Django, DRF, Asterisk, Python, tRPC, Prisma, Redis, D1, Docker, MCP, etc.) are confirmed factual claims, not placeholders — future edits must keep them true rather than aspirational.
 
 ## Evidence on Hand
 
-- Real work history with named employers/clients and dates (Self-Employed / German Digital Consultancy, Foxes, NextG, Remote Helpers, Aweb Systems), each with concrete responsibility bullets — see `experience` in `src/App.jsx`.
+- Real work history with named employers/clients and dates (Self-Employed / German Digital Consultancy, Foxes, NextG, Remote Helpers, Aweb Systems), each with concrete responsibility bullets — see `experience` in `src/App.jsx` (including client deliverables: Car Service Platform, Ajax, Spilka, Automated Voice Dialing System, and Cal.diy).
 - Three real project case studies: `github.com/Naykitin/frontend-next` (repo only), `github.com/Naykitin/task-manager` (NayFlow) with a live demo at `task-manager.naykitin.workers.dev` (backed by real screenshots in `public/`), and `github.com/Naykitin/schengen-visa-calculator` (NayKit) with a live demo at `schengen-visa-calculator.pages.dev`.
 - Two real downloadable CV PDFs (EN/UA) in `public/`.
 - No testimonials, client logos, or case-study metrics exist anywhere in the codebase — do not fabricate them.

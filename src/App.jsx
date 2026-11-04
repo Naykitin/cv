@@ -81,18 +81,18 @@ function runWithViewTransition(updateState) {
 }
 
 const stats = [
-  { value: '5+', label: 'Years building web products' },
-  { value: '2026', label: 'Latest full-stack role' },
-  { value: '15+', label: 'CMS and commerce stacks shipped' },
+  { value: '5+', label: 'Years of full-stack engineering' },
+  { value: '2026', label: 'Independent Lead Contractor' },
+  { value: '15+', label: 'Production SaaS & automation systems shipped' },
 ];
 
-const heroSignals = ['React / Next.js', 'Headless WordPress', 'E-commerce systems'];
+const heroSignals = ['React / Next.js', 'Serverless & Edge', 'AI-Native Engineering'];
 
 const heroCapabilities = [
-  'Payment gateways',
-  'Third-party APIs',
-  'CRM tracking',
-  'GraphQL data layers',
+  'Serverless Infrastructure',
+  'AI & LLM Integrations',
+  'Telephony & VoIP',
+  'Real-time Data Sync',
 ];
 
 const skillCategories = [
@@ -117,6 +117,10 @@ const skillCategories = [
       'Payload CMS 3',
       'Django',
       'DRF',
+      'Asterisk (AMI / PJSIP)',
+      'Python',
+      'tRPC',
+      'Prisma',
       'Asterisk ARI',
       'PHP',
       'WordPress',
@@ -140,6 +144,8 @@ const skillCategories = [
     category: 'Tooling & Architecture',
     skills: [
       'Docker',
+      'Speech Synthesis / TTS (GCloud, Piper)',
+      'Monorepos (Yarn Workspaces)',
       'Cloudflare Tunnels',
       'Caddy',
       'WebSockets',
@@ -166,6 +172,8 @@ const experience = [
       'Act as primary full-stack engineering contractor for an enterprise client in Germany, architecting and delivering high-performance web applications, specialized portals, and marketplace platforms from scratch.',
       'Architected and shipped Car Service Platform (auto marketplace): built scalable REST APIs using Django, DRF, PostgreSQL, Redis, and Celery; paired with a Next.js 16 web frontend and React Native (Expo) mobile client. Secured auth with JWT and Cloudflare Turnstile.',
       'Built Ajax multi-service platform: decoupled frontend (Next.js 16) and headless backend (Strapi 5, SQLite), alongside a real-time telephony microservice (Fastify, TypeScript, Asterisk ARI, Google Cloud TTS, WebSockets).',
+      'Engineered Automated Voice Dialing System (debt-dialer): Asterisk 20 (PJSIP) + Python 3.12 via AMI Originate, multi-engine TTS (Google Cloud Chirp3-HD, Gemini, local Piper, Azure), interactive IVR keypress branching ("1" confirmation / "2" consultation lead), bi-directional Google Sheets sync, and a Telegram control bot.',
+      'Deployed and customized Cal.diy (open-source scheduling infrastructure based on calcom/cal.diy): Next.js, TypeScript, Tailwind CSS, tRPC, Prisma, and PostgreSQL monorepo, integrating multi-calendar synchronization and self-hosted conferencing.',
       'Developed Spilka (spilka.law): a production legal service platform powered by Next.js 16, Payload CMS 3, and PostgreSQL 16.',
       'Accelerated day-to-day SDLC delivery by integrating an AI-native toolchain: orchestrating Claude Code via terminal CLI, custom Model Context Protocol (MCP) servers, and isolated Git worktree workflows.',
     ],
@@ -272,18 +280,18 @@ const projects = [
 
 const services = [
   {
-    title: 'Full-stack product delivery',
-    text: 'From pixel-perfect React frontends to PHP and Node.js backend logic, focused on maintainable business outcomes.',
+    title: 'Full-stack SaaS delivery',
+    text: 'From high-performance Next.js frontends to robust Node.js and Python backends, focused on scalable and maintainable business outcomes.',
     icon: Code2,
   },
   {
-    title: 'Commerce systems',
-    text: 'WooCommerce and Shopify builds with cleaner user flows, faster storefronts, and secure payment integrations.',
+    title: 'AI & Telephony Automation',
+    text: 'Building smart workflows with Claude API, MCP servers, and enterprise VoIP integrations (Asterisk, multi-engine TTS, WebSockets).',
     icon: BriefcaseBusiness,
   },
   {
-    title: 'Modern WordPress',
-    text: 'Headless WordPress architecture that keeps editorial flexibility while improving frontend performance.',
+    title: 'Serverless Architecture',
+    text: 'Deploying resilient, zero-maintenance infrastructure using Cloudflare Workers, D1, and Docker to maximize performance and security.',
     icon: Rocket,
   },
 ];
@@ -505,10 +513,9 @@ function App() {
               </span>
             </div>
             <p className="hero-name">Vladyslav Nikitin</p>
-            <h1 id="hero-title">Full-stack developer building commerce, CMS, and React platforms.</h1>
+            <h1 id="hero-title">Lead full-stack engineer building scalable SaaS, automation, and modern web platforms.</h1>
             <p className="hero-text">
-              I turn complex WordPress, Shopify, and headless ideas into polished React and Next.js
-              products with secure integrations, clean data flows, and frontend performance that feels immediate.
+              I architect and deliver high-performance web applications—from Next.js frontends and Cloudflare serverless backends to complex telephony, real-time data flows, and AI-native integrations.
             </p>
 
             <div className="hero-signal-row" aria-label="Main expertise">
@@ -561,7 +568,7 @@ function App() {
           </div>
           <div className="showcase-focus">
             <p>Core delivery</p>
-            <h2>Pixel-perfect frontend, practical backend, measurable product flow.</h2>
+            <h2>High-performance frontends, resilient serverless backends, and AI-driven workflows.</h2>
           </div>
           <div className="capability-list" aria-label="Technical capabilities">
             {heroCapabilities.map((item) => (
@@ -577,9 +584,9 @@ function App() {
             ))}
           </div>
           <div className="showcase-footer">
-            <span>API integrations</span>
-            <span>CRM tracking</span>
-            <span>Payment flows</span>
+            <span>Serverless backends</span>
+            <span>AI-native workflows</span>
+            <span>Systems automation</span>
           </div>
         </aside>
       </LaptopScrub>
@@ -591,9 +598,7 @@ function App() {
         </div>
         <div className="summary-copy">
           <p>
-            I specialize in complex e-commerce ecosystems, but my work spans bespoke landing pages,
-            corporate platforms, CMS products, and custom integrations. My goal is to create software
-            that is fast, secure, scalable, and easy for teams to maintain.
+            I specialize in scalable SaaS and serverless architectures, bridging modern Next.js frontends with robust Python and Node.js backends. From AI-native tooling to automated telephony systems, my goal is to engineer software that is fast, secure, and built for enterprise scale.
           </p>
         </div>
       </section>
@@ -659,15 +664,22 @@ function App() {
               <h2 id={titleId}>{project.title}</h2>
               <p>{project.description}</p>
               <div className="project-links">
-                <a className="text-link" href={project.repoUrl} target="_blank" rel="noreferrer">
-                  View repository
-                  <ArrowUpRight size={16} aria-hidden="true" />
-                </a>
+                {project.repoUrl && (
+                  <a className="text-link" href={project.repoUrl} target="_blank" rel="noreferrer">
+                    View repository
+                    <ArrowUpRight size={16} aria-hidden="true" />
+                  </a>
+                )}
                 {project.liveUrl && (
                   <a className="text-link" href={project.liveUrl} target="_blank" rel="noreferrer">
                     Live demo
                     <ArrowUpRight size={16} aria-hidden="true" />
                   </a>
+                )}
+                {project.repoDetails && (
+                  <span className="project-status-note">
+                    {project.repoDetails}
+                  </span>
                 )}
               </div>
             </div>

@@ -80,12 +80,25 @@ export default function useScrollEffects() {
       }
     });
 
+    mm.add('(max-width: 980px)', () => {
+      gsap.utils.toArray('.laptop-bezel .reveal').forEach((element) => {
+        gsap.from(element, {
+          autoAlpha: 0,
+          y: 44,
+          duration: 0.9,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: element, start: 'top 86%', once: true },
+        });
+      });
+    });
+
     mm.add('(min-width: 1px)', () => {
       gsap.utils
         .toArray('.reveal')
         .filter(
           (element) =>
-            !element.matches('.section-intro, .cards-section, .project-section, .education-section')
+            !element.matches('.section-intro, .cards-section, .project-section, .education-section') &&
+            !element.closest('.laptop-bezel')
         )
         .forEach((element) => {
           gsap.from(element, {

@@ -1,307 +1,390 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// --- Frame sequence config -------------------------------------------------
-// Rendered from Blender: 150 frames, transparent WebP, 1600x1000.
-// Frames 1-60 open the lid; 60-150 dolly straight in until the display
-// fills the whole frame.
-const FRAME_COUNT = 150;
-const FRAME_DIR = '/frames';
-const IMAGE_W = 1600;
-const IMAGE_H = 1000;
-const framePath = (i) =>
-  `${FRAME_DIR}/frame_${String(i).padStart(4, '0')}.webp`;
+// Total scroll distance (px) mapped onto the lid-open + camera-dolly scrub.
+const SCROLL_LENGTH = 2000;
 
-// Total scroll distance (px) mapped onto the full sequence. More = slower scrub.
-const SCROLL_LENGTH = 2200;
+// Hinge angles (deg):
+// .laptop-base sits at rotateX(82deg). At rotateX(-98deg), .laptop-lid lies
+// completely parallel to the keyboard deck (82 - (-98) = 180°). Rotating to
+// 0deg opens the lid through 98° into the viewport plane so nested HTML
+// renders distortion-free and pixel-locked as the camera dollies in.
+const LID_CLOSED_ANGLE = -98;
+const LID_OPEN_ANGLE = 0;
+const BASE_TILT_ANGLE = 82;
 
-// The frame zoom completes at this fraction of the pin; the rest is a tail
-// where the rendered laptop dissolves, leaving the mac window on the page
-// itself for a seamless handoff into the next section.
-const ZOOM_END = 0.88;
-const CANVAS_FADE_START = 0.9;
-
-// The laptop display's rect in image pixels, measured at key frames.
-// { p: progress (frame-1)/149, cx/cy: display center, w: display width }
-const DISPLAY_KEYFRAMES = [
-  { p: 0.396, cx: 802, cy: 489, w: 589 },
-  { p: 0.53, cx: 801, cy: 489, w: 613 },
-  { p: 0.698, cx: 798, cy: 489, w: 852 },
-  { p: 0.832, cx: 804, cy: 468, w: 1248 },
-  { p: 1, cx: 800, cy: 500, w: 1620 },
+// Authentic 6-row MacBook Pro Magic Keyboard layout (unit weights per row).
+const KEYBOARD_ROWS = [
+  {
+    compact: true,
+    keys: [
+      { id: 'esc', label: 'esc', w: 1.45, align: 'left' },
+      { id: 'f1', label: 'F1' },
+      { id: 'f2', label: 'F2' },
+      { id: 'f3', label: 'F3' },
+      { id: 'f4', label: 'F4' },
+      { id: 'f5', label: 'F5' },
+      { id: 'f6', label: 'F6' },
+      { id: 'f7', label: 'F7' },
+      { id: 'f8', label: 'F8' },
+      { id: 'f9', label: 'F9' },
+      { id: 'f10', label: 'F10' },
+      { id: 'f11', label: 'F11' },
+      { id: 'f12', label: 'F12' },
+      { id: 'touch-id', touchId: true },
+    ],
+  },
+  {
+    keys: [
+      { id: 'grave', label: '`' },
+      { id: '1', label: '1' },
+      { id: '2', label: '2' },
+      { id: '3', label: '3' },
+      { id: '4', label: '4' },
+      { id: '5', label: '5' },
+      { id: '6', label: '6' },
+      { id: '7', label: '7' },
+      { id: '8', label: '8' },
+      { id: '9', label: '9' },
+      { id: '0', label: '0' },
+      { id: 'minus', label: '-' },
+      { id: 'equal', label: '=' },
+      { id: 'delete', label: '⌫', w: 1.55, align: 'right' },
+    ],
+  },
+  {
+    keys: [
+      { id: 'tab', label: '⇥', w: 1.55, align: 'left' },
+      { id: 'q', label: 'Q' },
+      { id: 'w', label: 'W' },
+      { id: 'e', label: 'E' },
+      { id: 'r', label: 'R' },
+      { id: 't', label: 'T' },
+      { id: 'y', label: 'Y' },
+      { id: 'u', label: 'U' },
+      { id: 'i', label: 'I' },
+      { id: 'o', label: 'O' },
+      { id: 'p', label: 'P' },
+      { id: 'lbracket', label: '[' },
+      { id: 'rbracket', label: ']' },
+      { id: 'backslash', label: '\\' },
+    ],
+  },
+  {
+    keys: [
+      { id: 'caps', label: '⇪', w: 1.8, align: 'left', capsDot: true },
+      { id: 'a', label: 'A' },
+      { id: 's', label: 'S' },
+      { id: 'd', label: 'D' },
+      { id: 'f', label: 'F', homing: true },
+      { id: 'g', label: 'G' },
+      { id: 'h', label: 'H' },
+      { id: 'j', label: 'J', homing: true },
+      { id: 'k', label: 'K' },
+      { id: 'l', label: 'L' },
+      { id: 'semicolon', label: ';' },
+      { id: 'quote', label: "'" },
+      { id: 'return', label: '⏎', w: 1.85, align: 'right' },
+    ],
+  },
+  {
+    keys: [
+      { id: 'lshift', label: '⇧', w: 2.35, align: 'left' },
+      { id: 'z', label: 'Z' },
+      { id: 'x', label: 'X' },
+      { id: 'c', label: 'C' },
+      { id: 'v', label: 'V' },
+      { id: 'b', label: 'B' },
+      { id: 'n', label: 'N' },
+      { id: 'm', label: 'M' },
+      { id: 'comma', label: ',' },
+      { id: 'period', label: '.' },
+      { id: 'slash', label: '/' },
+      { id: 'rshift', label: '⇧', w: 2.35, align: 'right' },
+    ],
+  },
+  {
+    keys: [
+      { id: 'fn', label: 'fn', align: 'left' },
+      { id: 'ctrl', label: '⌃' },
+      { id: 'lopt', label: '⌥' },
+      { id: 'lcmd', label: '⌘', w: 1.28 },
+      { id: 'space', label: '', w: 5.2, space: true },
+      { id: 'rcmd', label: '⌘', w: 1.28 },
+      { id: 'ropt', label: '⌥' },
+      { id: 'arrow-left', label: '◀', halfBottom: true },
+      { id: 'arrow-updown', splitArrows: true },
+      { id: 'arrow-right', label: '▶', halfBottom: true },
+    ],
+  },
 ];
-
-// Overlay base size in px; must match .laptop-scrub-screen CSS.
-// Aspect ~1.47 = the rendered display's aspect ratio.
-const BASE_W = 1000;
-const BASE_H = 680;
-
-// Screen content fades in as the lid finishes opening and the dolly begins.
-const FADE_IN_START = 0.4;
-const FADE_IN_END = 0.52;
-
-// The showcase window must always fit inside the viewport, so its scale is
-// capped at these fractions. The cap blends in via a smooth-min: 1:1 display
-// tracking everywhere, with just the corner into the cap rounded off.
-const OVERLAY_MAX_VW = 0.96;
-const OVERLAY_MAX_VH = 0.92;
-
-// Smooth minimum: equals the lesser of a/b away from their crossover and
-// rounds the corner within ±k of it, so the capped scale has no kink.
-function softMin(a, b, k) {
-  const h = Math.max(0, Math.min(1, 0.5 + (0.5 * (b - a)) / k));
-  return a * h + b * (1 - h) - k * h * (1 - h);
-}
-
-function displayRectAt(progress) {
-  const frames = DISPLAY_KEYFRAMES;
-  if (progress <= frames[0].p) {
-    return frames[0];
-  }
-  for (let i = 1; i < frames.length; i += 1) {
-    if (progress <= frames[i].p) {
-      const a = frames[i - 1];
-      const b = frames[i];
-      const t = (progress - a.p) / (b.p - a.p);
-      return {
-        cx: a.cx + (b.cx - a.cx) * t,
-        cy: a.cy + (b.cy - a.cy) * t,
-        w: a.w + (b.w - a.w) * t,
-      };
-    }
-  }
-  return frames[frames.length - 1];
-}
 
 function LaptopScrub({ children }) {
   const sectionRef = useRef(null);
-  const canvasRef = useRef(null);
-  const screenRef = useRef(null);
-  const [ready, setReady] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const dollyRef = useRef(null);
+  const lidRef = useRef(null);
+  const baseRef = useRef(null);
+  const wakeRef = useRef(null);
+  const glareRef = useRef(null);
+  const shadowRef = useRef(null);
 
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') {
       return undefined;
     }
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return undefined;
-    }
-    // Sequence only runs on desktop; mobile shows the static card via CSS.
-    if (!window.matchMedia('(min-width: 981px)').matches) {
-      return undefined;
-    }
 
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return undefined;
-    }
-    const ctx = canvas.getContext('2d', { alpha: true });
-    if (!ctx) {
-      return undefined;
-    }
-
-    const frames = new Array(FRAME_COUNT);
-    let loaded = 0;
-    let cancelled = false;
-    let currentIndex = -1;
-    let rafId = 0;
-
-    // --- Canvas sizing (DPR-aware) -----------------------------------------
-    const sizeCanvas = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const { clientWidth, clientHeight } = canvas;
-      canvas.width = Math.round(clientWidth * dpr);
-      canvas.height = Math.round(clientHeight * dpr);
-    };
-
-    // "Cover" fit of the 1600x1000 frame over the canvas, in CSS pixels:
-    // the frame always fills the full viewport, cropping top/bottom (or
-    // sides) instead of letterboxing.
-    const coverFit = () => {
-      const cw = canvas.clientWidth;
-      const ch = canvas.clientHeight;
-      const scale = Math.max(cw / IMAGE_W, ch / IMAGE_H);
-      return {
-        scale,
-        offsetX: (cw - IMAGE_W * scale) / 2,
-        offsetY: (ch - IMAGE_H * scale) / 2,
-      };
-    };
-
-    const drawFrame = (index) => {
-      const img = frames[index];
-      if (!img || !img.complete || img.naturalWidth === 0) {
-        return;
-      }
-      const cw = canvas.width;
-      const ch = canvas.height;
-      ctx.clearRect(0, 0, cw, ch);
-      const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-      const dw = img.naturalWidth * scale;
-      const dh = img.naturalHeight * scale;
-      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
-    };
-
-    const renderIndex = (index) => {
-      const clamped = Math.max(0, Math.min(FRAME_COUNT - 1, index));
-      if (clamped === currentIndex) {
-        return;
-      }
-      currentIndex = clamped;
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => drawFrame(clamped));
-    };
-
-    // Showcase base size (untransformed layout px), cached so the scrub
-    // never forces layout reads mid-animation.
-    let showcaseW = 0;
-    let showcaseH = 0;
-    const measureShowcase = () => {
-      const card = screenRef.current?.firstElementChild;
-      if (card && card.offsetWidth > 0) {
-        showcaseW = card.offsetWidth;
-        showcaseH = card.offsetHeight;
-      }
-    };
-
-    // Pin the DOM overlay to the rendered display: uniform scale + center.
-    const positionOverlay = (p) => {
-      const screen = screenRef.current;
-      if (!screen) {
-        return;
-      }
-      const rect = displayRectAt(p);
-      const fit = coverFit();
-      let scale = (rect.w * fit.scale) / BASE_W;
-      if (showcaseW > 0 && showcaseH > 0) {
-        const maxScale = Math.min(
-          (canvas.clientWidth * OVERLAY_MAX_VW) / showcaseW,
-          (canvas.clientHeight * OVERLAY_MAX_VH) / showcaseH
-        );
-        scale = softMin(scale, maxScale, maxScale * 0.18);
-      }
-      const x = fit.offsetX + rect.cx * fit.scale - (BASE_W * scale) / 2;
-      const y = fit.offsetY + rect.cy * fit.scale - (BASE_H * scale) / 2;
-      gsap.set(screen, { x, y, scale });
-    };
-
-    // --- Preload all frames ------------------------------------------------
-    for (let i = 0; i < FRAME_COUNT; i += 1) {
-      const img = new Image();
-      img.decoding = 'async';
-      img.src = framePath(i + 1);
-      img.onload = img.onerror = () => {
-        loaded += 1;
-        if (loaded === FRAME_COUNT && !cancelled) {
-          setReady(true);
-        }
-        setProgress(loaded / FRAME_COUNT);
-      };
-      frames[i] = img;
-    }
-
-    // --- ScrollTrigger + timeline ------------------------------------------
     const mm = gsap.matchMedia();
-    mm.add('(min-width: 981px)', () => {
-      const section = sectionRef.current;
-      const screen = screenRef.current;
-      const proxy = { progress: 0 };
 
-      sizeCanvas();
-      measureShowcase();
-      positionOverlay(0);
-      const overlayProgress = () => Math.min(1, proxy.progress / ZOOM_END);
-      const onResize = () => {
-        sizeCanvas();
-        measureShowcase();
-        drawFrame(currentIndex < 0 ? 0 : currentIndex);
-        positionOverlay(overlayProgress());
-      };
-      window.addEventListener('resize', onResize);
-      // Webfont swap changes the card's height; re-measure once fonts land.
-      if (document.fonts?.ready) {
-        document.fonts.ready.then(() => {
-          measureShowcase();
-          positionOverlay(overlayProgress());
+    mm.add(
+      '(min-width: 981px) and (prefers-reduced-motion: no-preference)',
+      () => {
+        const section = sectionRef.current;
+        const dolly = dollyRef.current;
+        const lid = lidRef.current;
+        const base = baseRef.current;
+        const wake = wakeRef.current;
+        const glare = glareRef.current;
+        const shadow = shadowRef.current;
+
+        if (!section || !dolly || !lid || !base) {
+          return undefined;
+        }
+
+        const getStartScale = () => {
+          const lidW = lid.offsetWidth || 1280;
+          const lidH = lid.offsetHeight || 820;
+          const fit = Math.min(
+            (window.innerWidth * 0.56) / lidW,
+            (window.innerHeight * 0.54) / lidH
+          );
+          return Math.max(0.38, Math.min(0.64, fit));
+        };
+
+        const getEndScale = () => {
+          const lidW = lid.offsetWidth || 1280;
+          const lidH = lid.offsetHeight || 820;
+          // Cap at 1 so the GPU layer never upscales past its native raster
+          // resolution, keeping typography razor-sharp throughout the scrub.
+          return Math.min(
+            1,
+            (window.innerWidth * 0.96) / lidW,
+            (window.innerHeight * 0.94) / lidH
+          );
+        };
+
+        const getMidScale = () =>
+          Math.min(getEndScale(), getStartScale() * 1.18);
+
+        // GSAP's built-in `scale` only emits 2D scale(sx, sy), leaving scaleZ = 1.
+        // Driving a uniform scale3d(s, s, s) matrix scales X, Y, and Z together so
+        // physical chassis thickness grows proportionally as the camera zooms in.
+        const dollyPose = {
+          yPercent: -26,
+          z: -380,
+          rotateX: 4,
+          scale: getStartScale(),
+        };
+
+        const syncDollyTransform = () => {
+          const { yPercent, z, rotateX, scale } = dollyPose;
+          dolly.style.transform = `translate3d(0px, ${yPercent}%, ${z}px) rotateX(${rotateX}deg) scale3d(${scale}, ${scale}, ${scale})`;
+        };
+
+        // Never animate opacity on .laptop-base or any preserve-3d ancestor
+        // (opacity < 1 forces transform-style: flat in CSS 3D). Target only
+        // 2D leaf surfaces for the late settle fade once the base exits view.
+        const baseLeafFaces = base.querySelectorAll('[data-base-leaf]');
+        const baseInnerSlices = base.querySelectorAll('.base-layer');
+
+        syncDollyTransform();
+        gsap.set(lid, {
+          rotateX: LID_CLOSED_ANGLE,
+          force3D: true,
         });
-      }
+        gsap.set(base, {
+          rotateX: BASE_TILT_ANGLE,
+          force3D: true,
+        });
+        if (baseLeafFaces.length) {
+          gsap.set(baseLeafFaces, { opacity: 1 });
+        }
+        if (baseInnerSlices.length) {
+          gsap.set(baseInnerSlices, { opacity: 1 });
+        }
+        if (wake) {
+          gsap.set(wake, { opacity: 0.9 });
+        }
+        if (glare) {
+          gsap.set(glare, { xPercent: -26, opacity: 0, force3D: true });
+        }
+        if (shadow) {
+          gsap.set(shadow, { scale: 0.88, autoAlpha: 0.8, force3D: true });
+        }
 
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: 'top top',
-          end: `+=${SCROLL_LENGTH}`,
-          pin: true,
-          scrub: 0.6,
-          anticipatePin: 1,
-        },
-      });
-
-      // While the overlay is being scaled, its raster is cached at base size
-      // and upscaled (soft/blurry text). Once the scrub rests at the end,
-      // `is-settled` drops layer promotion + the 3D tilt so the browser
-      // re-rasterizes the window crisp at its final scale.
-      let settleTimer = 0;
-
-      timeline.to(
-        proxy,
-        {
-          progress: 1,
-          ease: 'none',
-          duration: 1,
-          onUpdate: () => {
-            // Frames finish at ZOOM_END and hold; the tail is the dissolve.
-            const fp = Math.min(1, proxy.progress / ZOOM_END);
-            renderIndex(Math.round(fp * (FRAME_COUNT - 1)));
-            positionOverlay(fp);
-            window.clearTimeout(settleTimer);
-            if (proxy.progress >= 0.99) {
-              settleTimer = window.setTimeout(() => {
-                section.classList.add('is-settled');
-              }, 200);
-            } else {
-              section.classList.remove('is-settled');
-            }
+        const timeline = gsap.timeline({
+          onUpdate: syncDollyTransform,
+          scrollTrigger: {
+            trigger: section,
+            start: 'top top',
+            end: `+=${SCROLL_LENGTH}`,
+            pin: true,
+            scrub: 0.5,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onRefresh: syncDollyTransform,
           },
-        },
-        0
-      );
+        });
 
-      // The display content appears once the lid is open and stays on:
-      // by the end of the zoom it has become the full viewport.
-      timeline.fromTo(
-        screen,
-        { autoAlpha: 0 },
-        { autoAlpha: 1, ease: 'power1.inOut', duration: FADE_IN_END - FADE_IN_START },
-        FADE_IN_START
-      );
+        // Phase 1 (0.00 -> 0.46): Swing the lid open ~98° while easing the
+        // camera dolly into a balanced mid-shot of the open laptop.
+        timeline.to(
+          lid,
+          {
+            rotateX: LID_OPEN_ANGLE,
+            ease: 'power2.inOut',
+            duration: 0.46,
+          },
+          0
+        );
 
-      // Once the display fills the viewport, dissolve the rendered laptop:
-      // the mac window is left standing on the page background.
-      timeline.to(
-        canvas,
-        { autoAlpha: 0, ease: 'power1.inOut', duration: 1 - CANVAS_FADE_START },
-        CANVAS_FADE_START
-      );
+        timeline.fromTo(
+          dollyPose,
+          {
+            yPercent: -26,
+            z: -380,
+            rotateX: 4,
+            scale: () => getStartScale(),
+          },
+          {
+            yPercent: -5,
+            z: -230,
+            rotateX: 2,
+            scale: () => getMidScale(),
+            ease: 'sine.inOut',
+            duration: 0.42,
+          },
+          0
+        );
 
-      renderIndex(0);
+        if (wake) {
+          timeline.to(
+            wake,
+            {
+              opacity: 0,
+              ease: 'power2.out',
+              duration: 0.32,
+            },
+            0.1
+          );
+        }
 
-      return () => {
-        window.removeEventListener('resize', onResize);
-        window.clearTimeout(settleTimer);
-        section.classList.remove('is-settled');
-        timeline.scrollTrigger?.kill();
-        timeline.kill();
-      };
-    });
+        if (glare) {
+          timeline.to(
+            glare,
+            {
+              xPercent: 10,
+              opacity: 0.55,
+              ease: 'sine.out',
+              duration: 0.34,
+            },
+            0.1
+          );
+        }
+
+        if (shadow) {
+          timeline.to(
+            shadow,
+            {
+              scale: 1.04,
+              autoAlpha: 0.55,
+              ease: 'sine.inOut',
+              duration: 0.42,
+            },
+            0
+          );
+        }
+
+        // Phase 2 (0.42 -> 1.00): Dolly straight into the open display bezel
+        // with uniform 3D scale3d(s, s, s) so chassis Z-depth grows with X/Y.
+        timeline.to(
+          dollyPose,
+          {
+            yPercent: 0,
+            z: 0,
+            rotateX: 0,
+            scale: () => getEndScale(),
+            ease: 'power2.inOut',
+            duration: 0.58,
+            immediateRender: false,
+          },
+          0.42
+        );
+
+        // Keep the 3D base 100% opaque until the front lip and palmrest have
+        // zoomed below the viewport, then fade only 2D leaf faces so
+        // preserve-3d containers never flatten.
+        if (baseInnerSlices.length) {
+          timeline.to(
+            baseInnerSlices,
+            {
+              opacity: 0,
+              ease: 'power2.in',
+              duration: 0.08,
+            },
+            0.85
+          );
+        }
+
+        if (baseLeafFaces.length) {
+          timeline.to(
+            baseLeafFaces,
+            {
+              opacity: 0,
+              ease: 'power2.in',
+              duration: 0.12,
+            },
+            0.87
+          );
+        }
+
+        if (shadow) {
+          timeline.to(
+            shadow,
+            {
+              scale: 1.24,
+              autoAlpha: 0,
+              ease: 'power1.in',
+              duration: 0.34,
+            },
+            0.52
+          );
+        }
+
+        if (glare) {
+          timeline.to(
+            glare,
+            {
+              xPercent: 40,
+              opacity: 0,
+              ease: 'power1.inOut',
+              duration: 0.42,
+            },
+            0.46
+          );
+        }
+
+        return () => {
+          dolly.style.transform = '';
+          timeline.scrollTrigger?.kill();
+          timeline.kill();
+        };
+      }
+    );
 
     return () => {
-      cancelled = true;
-      cancelAnimationFrame(rafId);
       mm.revert();
     };
   }, []);
@@ -312,14 +395,183 @@ function LaptopScrub({ children }) {
       ref={sectionRef}
       aria-label="Portfolio showcase animation"
     >
-      <canvas ref={canvasRef} className="laptop-scrub-canvas" />
-      {!ready && (
-        <div className="laptop-scrub-loader" aria-hidden="true">
-          <span style={{ '--p': progress }} />
+      <div className="laptop-rig-container">
+        <div className="laptop-camera-dolly" ref={dollyRef}>
+          <div className="laptop-lid" ref={lidRef}>
+            <div className="lid-volume" aria-hidden="true">
+              <div className="laptop-lid-back">
+                <span className="laptop-lid-emblem" />
+              </div>
+              <div className="laptop-lid-layer is-deep" />
+              <div className="laptop-lid-layer is-mid" />
+              <div className="laptop-lid-layer is-shallow" />
+              <span className="lid-edge lid-edge-top" />
+              <span className="lid-edge lid-edge-bottom" />
+              <span className="lid-edge lid-edge-left" />
+              <span className="lid-edge lid-edge-right" />
+              <div className="lid-corner lid-corner-tl">
+                <span />
+              </div>
+              <div className="lid-corner lid-corner-tr">
+                <span />
+              </div>
+            </div>
+            <div className="laptop-lid-rim" aria-hidden="true" />
+
+            <div className="laptop-bezel">
+              <div className="laptop-camera-notch" aria-hidden="true">
+                <span className="laptop-camera-sensor" />
+                <span className="laptop-camera-lens" />
+                <span className="laptop-camera-led" />
+              </div>
+              {children}
+              <div
+                className="laptop-screen-wake"
+                ref={wakeRef}
+                aria-hidden="true"
+              />
+              <div
+                className="laptop-screen-glare"
+                ref={glareRef}
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          <div className="laptop-base" ref={baseRef} aria-hidden="true">
+            <div className="base-volume">
+              <div className="base-layer base-layer-bevel-top" />
+              <div className="base-layer base-layer-upper" />
+              <div className="base-layer base-layer-mid" />
+              <div className="base-layer base-layer-lower" />
+              <div className="base-layer base-layer-chamfer-1" />
+              <div className="base-layer base-layer-chamfer-2" />
+
+              <div className="base-face base-face-bottom">
+                <div className="base-bottom-plate" data-base-leaf />
+                <span className="base-foot base-foot-fl">
+                  <i className="base-foot-pad" data-base-leaf />
+                  <i className="base-foot-rim" data-base-leaf />
+                </span>
+                <span className="base-foot base-foot-fr">
+                  <i className="base-foot-pad" data-base-leaf />
+                  <i className="base-foot-rim" data-base-leaf />
+                </span>
+                <span className="base-foot base-foot-bl">
+                  <i className="base-foot-pad" data-base-leaf />
+                  <i className="base-foot-rim" data-base-leaf />
+                </span>
+                <span className="base-foot base-foot-br">
+                  <i className="base-foot-pad" data-base-leaf />
+                  <i className="base-foot-rim" data-base-leaf />
+                </span>
+              </div>
+
+              <div className="base-face base-face-front" data-base-leaf>
+                <div className="base-indent" />
+              </div>
+              <div className="base-face base-face-back" data-base-leaf />
+
+              <div className="base-face base-face-left" data-base-leaf>
+                <div className="base-io-cluster">
+                  <span className="base-port base-port-magsafe" />
+                  <span className="base-port base-port-usbc" />
+                  <span className="base-port base-port-usbc" />
+                  <span className="base-port base-port-jack" />
+                </div>
+                <span className="base-vent" />
+              </div>
+
+              <div className="base-face base-face-right" data-base-leaf>
+                <div className="base-io-cluster">
+                  <span className="base-port base-port-hdmi" />
+                  <span className="base-port base-port-usbc" />
+                  <span className="base-port base-port-sdxc" />
+                </div>
+                <span className="base-vent" />
+              </div>
+
+              <div className="base-corner base-corner-fl">
+                <span className="base-corner-facet is-1" data-base-leaf />
+                <span className="base-corner-facet is-2" data-base-leaf />
+                <span className="base-corner-facet is-3" data-base-leaf />
+              </div>
+              <div className="base-corner base-corner-fr">
+                <span className="base-corner-facet is-1" data-base-leaf />
+                <span className="base-corner-facet is-2" data-base-leaf />
+                <span className="base-corner-facet is-3" data-base-leaf />
+              </div>
+              <div className="base-corner base-corner-bl" data-base-leaf />
+              <div className="base-corner base-corner-br" data-base-leaf />
+
+              <div className="base-face base-face-top" data-base-leaf>
+                <div className="laptop-screen-glow" />
+                <div className="laptop-hinge" />
+
+                <div className="laptop-deck">
+                  <div className="laptop-speaker" />
+                  <div className="laptop-keyboard-well">
+                    {KEYBOARD_ROWS.map((row, rowIndex) => (
+                      <div
+                        className={`laptop-key-row${row.compact ? ' is-compact' : ''}`}
+                        key={rowIndex}
+                      >
+                        {row.keys.map((key) => {
+                          if (key.splitArrows) {
+                            return (
+                              <div
+                                className="laptop-key-split"
+                                key={key.id}
+                                style={{ '--w': key.w || 1 }}
+                              >
+                                <span className="laptop-key is-half">▲</span>
+                                <span className="laptop-key is-half">▼</span>
+                              </div>
+                            );
+                          }
+                          const classes = [
+                            'laptop-key',
+                            key.align ? `is-${key.align}` : '',
+                            key.touchId ? 'is-touch-id' : '',
+                            key.space ? 'is-space' : '',
+                            key.homing ? 'is-homing' : '',
+                            key.halfBottom ? 'is-half-bottom' : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ');
+
+                          return (
+                            <span
+                              className={classes}
+                              key={key.id}
+                              style={key.w ? { '--w': key.w } : undefined}
+                            >
+                              {key.capsDot && <i className="laptop-caps-dot" />}
+                              {key.touchId ? (
+                                <i className="laptop-touch-id-ring" />
+                              ) : (
+                                key.label
+                              )}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="laptop-speaker" />
+                </div>
+
+                <div className="laptop-trackpad" />
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="laptop-desk-shadow"
+            ref={shadowRef}
+            aria-hidden="true"
+          />
         </div>
-      )}
-      <div className="laptop-scrub-screen" ref={screenRef}>
-        {children}
       </div>
     </section>
   );
