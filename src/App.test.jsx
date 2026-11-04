@@ -12,7 +12,7 @@ test('renders CV hero heading', () => {
   global.fetch = undefined;
 
   render(<App />);
-  const heading = screen.getByRole('heading', { name: /commerce, CMS, and React platforms/i });
+  const heading = screen.getByRole('heading', { name: /scalable SaaS, automation, and modern web platforms/i });
   expect(heading).toBeInTheDocument();
 });
 

@@ -750,6 +750,21 @@ button.text-link {
   margin-top: 24px;
 }
 
+.project-status-note {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  margin-top: 24px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.04);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
+}
+
 .project-media {
   grid-column: 1 / -1;
   display: grid;
