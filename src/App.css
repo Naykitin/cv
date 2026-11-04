@@ -1253,9 +1253,9 @@ button.text-link {
   place-items: center;
   width: 100%;
   height: 100%;
-  /* Telephoto studio perspective matches the ~85mm Blender reference lens,
-     preventing fisheye corner clipping while preserving rich 3D parallax. */
-  perspective: 3400px;
+  /* Studio camera perspective tuned for uniform scale3d(s, s, s) dolly zoom,
+     keeping both rounded front corners framed and preserving 3D parallax. */
+  perspective: 2200px;
   perspective-origin: 50% 54%;
 }
 
@@ -1285,8 +1285,8 @@ button.text-link {
   will-change: transform;
 }
 
-/* Compensates for dolly scaleX/Y (~0.5x) leaving Z unscaled, so --lid-depth
-   projects at true MacBook Pro display-shell thickness in viewport pixels. */
+/* Calibrates local Z extrusion relative to --lid-w so --lid-depth projects at
+   true MacBook Pro display-shell thickness across uniform scale3d() dolly zoom. */
 .lid-volume {
   position: absolute;
   inset: 0;
@@ -1645,8 +1645,8 @@ button.text-link {
   pointer-events: none;
 }
 
-/* Scales Z thickness to compensate for dolly scaleX/Y (~0.5x), so nominal
-   --base-depth: 14px renders as true volumetric 14px+ screen-space depth. */
+/* Calibrates local Z extrusion relative to --lid-w (~1480px) so --base-depth: 14px
+   projects with substantial unibody slab volume across uniform scale3d() zoom. */
 .base-volume {
   position: absolute;
   inset: 0;
@@ -1765,20 +1765,26 @@ button.text-link {
     drop-shadow(0 8px 14px rgba(0, 0, 0, 0.9));
 }
 
-/* Cylindrical rubber feet on the bottom-most 3D face (translateZ(-14px)) */
+/* Cylindrical rubber feet on the bottom-most 3D face (translateZ(-14px)).
+   Pad + rim are separate 2D leaf elements so opacity fades never flatten 3D. */
 .base-foot {
   position: absolute;
   width: 6.8%;
   height: 20px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 45%, #191a1e 0%, #0b0b0d 70%, #040405 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   transform: translateZ(-3.2px);
   transform-style: preserve-3d;
 }
 
+.base-foot-pad {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, #191a1e 0%, #0b0b0d 70%, #040405 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Extruded vertical rubber rim so feet visibly peek below the tilted chassis */
-.base-foot::after {
+.base-foot-rim {
   position: absolute;
   top: 62%;
   right: 4%;
@@ -1796,7 +1802,6 @@ button.text-link {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.95);
   transform-origin: 50% 0%;
   transform: translateZ(3.2px) rotateX(-90deg);
-  content: '';
 }
 
 .base-foot-fl {
@@ -2026,12 +2031,7 @@ button.text-link {
   right: 0;
 }
 
-.base-corner-fl::before,
-.base-corner-fl::after,
-.base-corner-fl > span,
-.base-corner-fr::before,
-.base-corner-fr::after,
-.base-corner-fr > span {
+.base-corner-facet {
   position: absolute;
   width: 14px;
   height: var(--base-depth);
@@ -2048,17 +2048,16 @@ button.text-link {
     inset 0 1px 0 rgba(255, 255, 255, 0.36),
     inset 0 -2px 3px rgba(0, 0, 0, 0.88);
   transform-origin: 50% 0%;
-  content: '';
 }
 
-.base-corner-fl::before {
+.base-corner-fl .base-corner-facet.is-1 {
   top: 23.75px;
   left: 15.42px;
   margin-left: -7px;
   transform: rotateZ(24deg) rotateX(-90deg);
 }
 
-.base-corner-fl > span {
+.base-corner-fl .base-corner-facet.is-2 {
   top: 17.73px;
   left: 6.98px;
   margin-left: -7px;
@@ -2073,7 +2072,7 @@ button.text-link {
   transform: rotateZ(47deg) rotateX(-90deg);
 }
 
-.base-corner-fl::after {
+.base-corner-fl .base-corner-facet.is-3 {
   top: 8.89px;
   left: 1.57px;
   margin-left: -7px;
@@ -2089,14 +2088,14 @@ button.text-link {
   transform: rotateZ(70deg) rotateX(-90deg);
 }
 
-.base-corner-fr::before {
+.base-corner-fr .base-corner-facet.is-1 {
   top: 23.75px;
   right: 15.42px;
   margin-right: -7px;
   transform: rotateZ(-24deg) rotateX(-90deg);
 }
 
-.base-corner-fr > span {
+.base-corner-fr .base-corner-facet.is-2 {
   top: 17.73px;
   right: 6.98px;
   margin-right: -7px;
@@ -2111,7 +2110,7 @@ button.text-link {
   transform: rotateZ(-47deg) rotateX(-90deg);
 }
 
-.base-corner-fr::after {
+.base-corner-fr .base-corner-facet.is-3 {
   top: 8.89px;
   right: 1.57px;
   margin-right: -7px;

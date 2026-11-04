@@ -178,22 +178,42 @@ function LaptopScrub({ children }) {
         const getMidScale = () =>
           Math.min(getEndScale(), getStartScale() * 1.18);
 
-        gsap.set(dolly, {
+        // GSAP's built-in `scale` only emits 2D scale(sx, sy), leaving scaleZ = 1.
+        // Driving a uniform scale3d(s, s, s) matrix scales X, Y, and Z together so
+        // physical chassis thickness grows proportionally as the camera zooms in.
+        const dollyPose = {
           yPercent: -26,
           z: -380,
           rotateX: 4,
-          scale: () => getStartScale(),
-          force3D: true,
-        });
+          scale: getStartScale(),
+        };
+
+        const syncDollyTransform = () => {
+          const { yPercent, z, rotateX, scale } = dollyPose;
+          dolly.style.transform = `translate3d(0px, ${yPercent}%, ${z}px) rotateX(${rotateX}deg) scale3d(${scale}, ${scale}, ${scale})`;
+        };
+
+        // Never animate opacity on .laptop-base or any preserve-3d ancestor
+        // (opacity < 1 forces transform-style: flat in CSS 3D). Target only
+        // 2D leaf surfaces for the late settle fade once the base exits view.
+        const baseLeafFaces = base.querySelectorAll('[data-base-leaf]');
+        const baseInnerSlices = base.querySelectorAll('.base-layer');
+
+        syncDollyTransform();
         gsap.set(lid, {
           rotateX: LID_CLOSED_ANGLE,
           force3D: true,
         });
         gsap.set(base, {
           rotateX: BASE_TILT_ANGLE,
-          autoAlpha: 1,
           force3D: true,
         });
+        if (baseLeafFaces.length) {
+          gsap.set(baseLeafFaces, { opacity: 1 });
+        }
+        if (baseInnerSlices.length) {
+          gsap.set(baseInnerSlices, { opacity: 1 });
+        }
         if (wake) {
           gsap.set(wake, { opacity: 0.9 });
         }
@@ -205,6 +225,7 @@ function LaptopScrub({ children }) {
         }
 
         const timeline = gsap.timeline({
+          onUpdate: syncDollyTransform,
           scrollTrigger: {
             trigger: section,
             start: 'top top',
@@ -213,6 +234,7 @@ function LaptopScrub({ children }) {
             scrub: 0.5,
             anticipatePin: 1,
             invalidateOnRefresh: true,
+            onRefresh: syncDollyTransform,
           },
         });
 
@@ -228,8 +250,14 @@ function LaptopScrub({ children }) {
           0
         );
 
-        timeline.to(
-          dolly,
+        timeline.fromTo(
+          dollyPose,
+          {
+            yPercent: -26,
+            z: -380,
+            rotateX: 4,
+            scale: () => getStartScale(),
+          },
           {
             yPercent: -5,
             z: -230,
@@ -280,9 +308,9 @@ function LaptopScrub({ children }) {
         }
 
         // Phase 2 (0.42 -> 1.00): Dolly straight into the open display bezel
-        // until it fills the viewport at native 1:1 resolution.
+        // with uniform 3D scale3d(s, s, s) so chassis Z-depth grows with X/Y.
         timeline.to(
-          dolly,
+          dollyPose,
           {
             yPercent: 0,
             z: 0,
@@ -290,19 +318,37 @@ function LaptopScrub({ children }) {
             scale: () => getEndScale(),
             ease: 'power2.inOut',
             duration: 0.58,
+            immediateRender: false,
           },
           0.42
         );
 
-        timeline.to(
-          base,
-          {
-            autoAlpha: 0,
-            ease: 'power2.in',
-            duration: 0.38,
-          },
-          0.48
-        );
+        // Keep the 3D base 100% opaque until the front lip and palmrest have
+        // zoomed below the viewport, then fade only 2D leaf faces so
+        // preserve-3d containers never flatten.
+        if (baseInnerSlices.length) {
+          timeline.to(
+            baseInnerSlices,
+            {
+              opacity: 0,
+              ease: 'power2.in',
+              duration: 0.08,
+            },
+            0.85
+          );
+        }
+
+        if (baseLeafFaces.length) {
+          timeline.to(
+            baseLeafFaces,
+            {
+              opacity: 0,
+              ease: 'power2.in',
+              duration: 0.12,
+            },
+            0.87
+          );
+        }
 
         if (shadow) {
           timeline.to(
@@ -313,7 +359,7 @@ function LaptopScrub({ children }) {
               ease: 'power1.in',
               duration: 0.34,
             },
-            0.46
+            0.52
           );
         }
 
@@ -331,6 +377,7 @@ function LaptopScrub({ children }) {
         }
 
         return () => {
+          dolly.style.transform = '';
           timeline.scrollTrigger?.kill();
           timeline.kill();
         };
@@ -401,19 +448,31 @@ function LaptopScrub({ children }) {
               <div className="base-layer base-layer-chamfer-2" />
 
               <div className="base-face base-face-bottom">
-                <div className="base-bottom-plate" />
-                <span className="base-foot base-foot-fl" />
-                <span className="base-foot base-foot-fr" />
-                <span className="base-foot base-foot-bl" />
-                <span className="base-foot base-foot-br" />
+                <div className="base-bottom-plate" data-base-leaf />
+                <span className="base-foot base-foot-fl">
+                  <i className="base-foot-pad" data-base-leaf />
+                  <i className="base-foot-rim" data-base-leaf />
+                </span>
+                <span className="base-foot base-foot-fr">
+                  <i className="base-foot-pad" data-base-leaf />
+                  <i className="base-foot-rim" data-base-leaf />
+                </span>
+                <span className="base-foot base-foot-bl">
+                  <i className="base-foot-pad" data-base-leaf />
+                  <i className="base-foot-rim" data-base-leaf />
+                </span>
+                <span className="base-foot base-foot-br">
+                  <i className="base-foot-pad" data-base-leaf />
+                  <i className="base-foot-rim" data-base-leaf />
+                </span>
               </div>
 
-              <div className="base-face base-face-front">
+              <div className="base-face base-face-front" data-base-leaf>
                 <div className="base-indent" />
               </div>
-              <div className="base-face base-face-back" />
+              <div className="base-face base-face-back" data-base-leaf />
 
-              <div className="base-face base-face-left">
+              <div className="base-face base-face-left" data-base-leaf>
                 <div className="base-io-cluster">
                   <span className="base-port base-port-magsafe" />
                   <span className="base-port base-port-usbc" />
@@ -423,7 +482,7 @@ function LaptopScrub({ children }) {
                 <span className="base-vent" />
               </div>
 
-              <div className="base-face base-face-right">
+              <div className="base-face base-face-right" data-base-leaf>
                 <div className="base-io-cluster">
                   <span className="base-port base-port-hdmi" />
                   <span className="base-port base-port-usbc" />
@@ -433,15 +492,19 @@ function LaptopScrub({ children }) {
               </div>
 
               <div className="base-corner base-corner-fl">
-                <span />
+                <span className="base-corner-facet is-1" data-base-leaf />
+                <span className="base-corner-facet is-2" data-base-leaf />
+                <span className="base-corner-facet is-3" data-base-leaf />
               </div>
               <div className="base-corner base-corner-fr">
-                <span />
+                <span className="base-corner-facet is-1" data-base-leaf />
+                <span className="base-corner-facet is-2" data-base-leaf />
+                <span className="base-corner-facet is-3" data-base-leaf />
               </div>
-              <div className="base-corner base-corner-bl" />
-              <div className="base-corner base-corner-br" />
+              <div className="base-corner base-corner-bl" data-base-leaf />
+              <div className="base-corner base-corner-br" data-base-leaf />
 
-              <div className="base-face base-face-top">
+              <div className="base-face base-face-top" data-base-leaf>
                 <div className="laptop-screen-glow" />
                 <div className="laptop-hinge" />
 

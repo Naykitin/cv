@@ -57,7 +57,7 @@ test('renders showcase card inside the 3D laptop bezel rig on desktop', () => {
   const originalMatchMedia = window.matchMedia;
 
   window.matchMedia = (query) => ({
-    matches: !query.includes('reduce') && !query.includes('max-width'),
+    matches: !query.includes(': reduce') && !query.includes('max-width'),
     media: query,
     onchange: null,
     addListener() {},
@@ -95,6 +95,11 @@ test('renders showcase card inside the 3D laptop bezel rig on desktop', () => {
     expect(base?.querySelector('.base-corner-fr')).toBeInTheDocument();
     expect(base?.querySelector('.base-indent')).toBeInTheDocument();
     expect(base?.querySelectorAll('.base-foot').length).toBe(4);
+    expect(base?.querySelectorAll('.base-foot-rim').length).toBe(4);
+    expect(base?.querySelectorAll('.base-corner-facet').length).toBe(6);
+    expect(base?.querySelectorAll('[data-base-leaf]').length).toBeGreaterThanOrEqual(20);
+    expect(dolly?.style.transform).toMatch(/scale3d\(/);
+    expect(base?.style.opacity).toBe('');
     expect(base?.querySelectorAll('.base-vent').length).toBe(2);
     expect(base?.querySelectorAll('.laptop-key').length).toBeGreaterThan(70);
     expect(base?.querySelector('.laptop-trackpad')).toBeInTheDocument();
